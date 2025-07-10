@@ -19,6 +19,7 @@ require (
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.5.4
+	github.com/segmentio/kafka-go v0.4.48
 	github.com/gocql/gocql v1.7.0
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
