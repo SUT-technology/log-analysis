@@ -5,6 +5,7 @@ go 1.23.6
 require gorm.io/gorm v1.30.0
 
 require (
+	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -17,6 +18,7 @@ require (
 )
 
 require (
+	github.com/ClickHouse/clickhouse-go v1.5.4
 	github.com/gocql/gocql v1.7.0
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
