@@ -1,14 +1,19 @@
-FROM golang:1.21-alpine AS builder
+FROM golang:1.23.6-alpine
 
 WORKDIR /app
-COPY . .
+
+# Copy module files and download dependencies
+COPY go.mod go.sum ./
 RUN go mod download
-RUN go build -o main .
 
-FROM alpine:latest
+# Copy everything in backend
+COPY . .
 
-WORKDIR /root/
-COPY --from=builder /app/main .
+# Set working directory to cmd where main.go lives
+WORKDIR /app/cmd
+
+# Build the application
+RUN go build -o /app/main .
 
 EXPOSE 8000
-CMD ["./main"]
+CMD ["/app/main"]

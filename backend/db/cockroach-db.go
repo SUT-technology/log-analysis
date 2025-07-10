@@ -1,7 +1,7 @@
 package db
 
 import (
-    "github.com/SUT-technology/log-analysis/backend/model"
+    "github.com/SUT-technology/log-analysis/model"
     "gorm.io/driver/postgres"
     "gorm.io/gorm"
     "log"
