@@ -6,6 +6,7 @@ import (
 	"github.com/SUT-technology/log-analysis/internal/application"
 	"github.com/SUT-technology/log-analysis/internal/domain/dto"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 type LogHndlr struct {
@@ -25,11 +26,14 @@ func New(g *echo.Group, srvc application.Services) *LogHndlr {
 // SendLog ورودی را به DTO تبدیل و به سرویس ارسال می‌کند
 func (h *LogHndlr) SendLog(c echo.Context) error {
 	var req dto.SendLogRequest
+	log.Info("Received request to send log")
 	if err := c.Bind(&req); err != nil {
+		log.Error("Failed to bind request:", err)
 		return c.JSON(http.StatusBadRequest, dto.SendLogResponse{Success: false, Message: "invalid request"})
 	}
 	resp, err := h.Services.LogSrvc.SendLog(c.Request().Context(), req)
 	if err != nil {
+		log.Error("Failed to send log:", err)
 		return c.JSON(http.StatusInternalServerError, dto.SendLogResponse{Success: false, Message: err.Error()})
 	}
 	return c.JSON(http.StatusOK, resp)

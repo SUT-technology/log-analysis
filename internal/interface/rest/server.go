@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"slices"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/SUT-technology/log-analysis/internal/interface/config"
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 type Server struct {
@@ -21,6 +23,7 @@ type Server struct {
 }
 
 func NewServer(srvc application.Services, cfg config.Config) *Server {
+	fmt.Println("🟢 NewServer called")
 	var dfrs []func()
 
 	e := echo.New()
@@ -43,17 +46,12 @@ func NewServer(srvc application.Services, cfg config.Config) *Server {
 	var middleware []echo.MiddlewareFunc
 	m := newMiddlewares(cfg)
 
-	// if cfg.Server.Logger {
-	// 	middleware = append(middleware, m.loggerMiddleware)
-	// }
-
-	// application specific middlewares
 	middleware = append(middleware, m.corsMiddleware())
 
-	// default recover middleware
-	// middleware = append(middleware, m.recoverMiddleware)
-
-	// applying middlewares and create a new server
+	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		log.Error("Unhandled error:", err)
+		c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
 	e.Use(middleware...)
 
 	register(e, srvc, m)

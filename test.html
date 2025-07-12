@@ -1,0 +1,42 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+
+    <script>
+        fetch("http://localhost:8000/api/logs", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    project_id: "1cb781e0-a81d-403c-9458-6d56efde5b08 ", // must be a valid UUID
+    api_key: "test-api-key-123",
+    name: "ExampleLogEvent",
+    timestamp: new Date().toISOString(), // ISO 8601 string, compatible with time.Time
+    payload: {
+      key1: "value1",
+      key2: "value2"
+    }
+  })
+})
+.then(response => {
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return response.json();
+})
+.then(data => {
+  console.log("Success:", data);
+})
+.catch(error => {
+  console.error("Error:", error);
+});
+
+    </script>
+</body>
+</html>
