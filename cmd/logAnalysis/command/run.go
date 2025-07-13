@@ -87,6 +87,13 @@ func Run() error {
 		startErr <- fmt.Errorf("HTTP server startup: %w", err)
 	}()
 
+	go func() {
+		log.Println("Starting Kafka consumer...")
+		if err := consumer.ProcessAndInsert(context.Background(), cass, clickhouseClient); err != nil {
+			log.Fatalf("Error processing Kafka messages: %v", err)
+		}
+	}()
+
 	select {
 	case err := <-startErr:
 		slog.Error("failed to start server", slog.Any("error", err))

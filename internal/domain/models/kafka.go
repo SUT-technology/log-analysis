@@ -1,9 +1,14 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/gocql/gocql"
+)
+
 
 type LogMessage struct {
-	ProjectID string            `json:"project_id"`
+	ProjectID gocql.UUID        `json:"project_id"`
 	Name      string            `json:"name"`
 	Timestamp time.Time         `json:"timestamp"`
 	Payload   map[string]string `json:"payload"`
