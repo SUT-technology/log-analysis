@@ -83,4 +83,6 @@ services:
 
 volumes:
   clickhouse-data:
-  cockroach-data:
+  cockroach-data1:
+  cockroach-data2:
+  cockroach-data3:

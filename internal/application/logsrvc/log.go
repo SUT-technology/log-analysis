@@ -46,7 +46,7 @@ func (s LogSrvc) SendLog(ctx context.Context, req dto.SendLogRequest) (dto.SendL
 	}
 
 	kafkaDto := models.LogMessage{
-		ProjectID: fmt.Sprintf("%d", project.ID),
+		ProjectID: project.ID,
 		Name:      req.Name,
 		Timestamp: req.Timestamp,
 		Payload:   req.Payload,
