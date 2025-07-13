@@ -19,7 +19,7 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
 
   cassandra:
     image: cassandra:4.0
@@ -42,15 +42,29 @@ services:
         soft: 262144
         hard: 262144
 
-  cockroach:
-    image: cockroachdb/cockroach:v23.1.6
-    container_name: cockroach
-    command: start-single-node --insecure
+  cockroach1:
+    image: cockroachdb/cockroach:v23.1.0
+    command: start --insecure --join=cockroach1,cockroach2,cockroach3 --advertise-addr=cockroach1
+    hostname: cockroach1
     ports:
       - "26257:26257"
       - "8080:8080"
     volumes:
-      - cockroach-data:/cockroach/cockroach-data
+      - cockroach-data1:/cockroach/cockroach-data
+
+  cockroach2:
+    image: cockroachdb/cockroach:v23.1.0
+    command: start --insecure --join=cockroach1,cockroach2,cockroach3 --advertise-addr=cockroach2
+    hostname: cockroach2
+    volumes:
+      - cockroach-data2:/cockroach/cockroach-data
+
+  cockroach3:
+    image: cockroachdb/cockroach:v23.1.0
+    command: start --insecure --join=cockroach1,cockroach2,cockroach3 --advertise-addr=cockroach3
+    hostname: cockroach3
+    volumes:
+      - cockroach-data3:/cockroach/cockroach-data
 
   api:
     build:
@@ -61,7 +75,9 @@ services:
       - kafka
       - cassandra
       - clickhouse
-      - cockroach
+      - cockroach1
+      - cockroach2
+      - cockroach3
     ports:
       - "8000:8000"
 
