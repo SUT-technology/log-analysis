@@ -1,6 +1,8 @@
 package dto
 
-import "time"
+import (
+	"time"
+)
 
 type EventSummary struct {
 	EventName  string    `json:"event_name"`
@@ -28,8 +30,6 @@ type DetailEventsResponse struct {
 	ProjectID   string       `json:"project_id"`
 	Filters     EventFilters `json:"applied_filters"`
 	Current     EventDetail  `json:"current_event"`
-	PrevEventID string       `json:"prev_event_id,omitempty"`
-	NextEventID string       `json:"next_event_id,omitempty"`
 }
 
 // EventFilters ورودی فیلتر
@@ -37,6 +37,17 @@ type EventFilters struct {
 	ProjectID      string            `json:"project_id" query:"project_id" binding:"required,uuid"`
 	SearchableKeys map[string]string `json:"searchable_keys,omitempty"`
 	EventName      string            `json:"event_name,omitempty" query:"event_name"`
+	EventTime	   time.Time		 `json:"event_time,omitempty" query:"event_time"`
+	Position	   Position			 `json:"position,omitempty"`
 	Page           int               `json:"page,omitempty" query:"page"`
+
 }
+
+type Position string
+
+const Next Position = "next"
+const Previous Position = "previous"
+const Absolute Position = "Absolute"
+
+
 
