@@ -17,7 +17,7 @@ func (c *ClickHouseSQLClient) InsertEvent(ctx context.Context, logMessage models
 		payload = append(payload, k, v)
 	}
 
-	_, err := c.db.ExecContext(ctx, query,
+	_, err := c.DB.ExecContext(ctx, query,
 		logMessage.ProjectID,
 		logMessage.Name,
 		logMessage.Timestamp,

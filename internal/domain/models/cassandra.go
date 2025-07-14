@@ -7,7 +7,6 @@ import (
 )
 
 type EventRaw struct {
-	ProjectID    uuid.UUID        `cql:"project_id"`
 // 	ID			 uuid.UUID		   `cql:"id"`	
 	ProjectID    uuid.UUID         `cql:"project_id"`
 	EventName    string            `cql:"event_name"`
