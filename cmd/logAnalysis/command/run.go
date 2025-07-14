@@ -38,6 +38,7 @@ func Run() error {
 	// راه‌اندازی Kafka
 	producer := kafka.NewKafkaProducer(cfg.Kafka.Brokers, cfg.Kafka.Topic)
 	consumer := kafka.NewKafkaConsumer(cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.GroupID)
+	go Consume(consumer)
 	fmt.Println("Kafka producer and consumer ready")
 
 	// راه‌اندازی Cassandra
@@ -60,7 +61,7 @@ func Run() error {
 	if err != nil {
 		log.Fatalf("clickhouse init: %v", err)
 	}
-	fmt.Println("Connected to ClickHouse")
+	fmt.Println("Connected to ClickHouse2")
 
 	srvc := application.New(producer, consumer, cass, crdb, clickhouseClient)
 
@@ -71,6 +72,7 @@ func Run() error {
 	_ = cass
 	_ = clickhouseClient
 	_ = context.Background()
+	fmt.Printf("cfg.Server.Addr = %#v\n", cfg.Server.Addr)
 	httpSrv := rest.NewServer(srvc, cfg)
 	defer func() {
 		slog.Debug("gracefully stopping HTTP server")
@@ -82,7 +84,12 @@ func Run() error {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		slog.Info("starting HTTP server", slog.String("address", cfg.Server.Addr))
+		defer func() {
+			if r := recover(); r != nil {
+				fmt.Println("❌ Server panicked:", r)
+			}
+		}()
+		fmt.Println("🚀 Starting HTTP server on", cfg.Server.Addr)
 		err := httpSrv.Start(cfg.Server.Addr)
 		startErr <- fmt.Errorf("HTTP server startup: %w", err)
 	}()
@@ -96,4 +103,35 @@ func Run() error {
 		return nil
 	}
 
+}
+func Consume(consumer *kafka.KafkaClient) {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Handle graceful shutdown
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-sigCh
+		log.Println("Shutting down Kafka consumer...")
+		cancel()
+	}()
+
+	// Consume loop
+	log.Println("Kafka consumer is running...")
+	for {
+		select {
+		case <-ctx.Done():
+			log.Println("Kafka consumer stopped.")
+			return // <---- added return
+		default:
+			msg, err := consumer.Consume(ctx)
+			if err != nil {
+				log.Printf("Error consuming message: %v", err)
+				continue
+			}
+			// Process the message
+			log.Printf("Received: %s", string(msg))
+		}
+	}
 }

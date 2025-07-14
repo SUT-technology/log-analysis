@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/SUT-technology/log-analysis/internal/domain/dto"
+	"github.com/SUT-technology/log-analysis/internal/domain/models"
 	"github.com/SUT-technology/log-analysis/internal/infrastructure/cassandra"
 	clickhouse "github.com/SUT-technology/log-analysis/internal/infrastructure/clickHouse"
 	cockroachdb "github.com/SUT-technology/log-analysis/internal/infrastructure/cockroachDB"
@@ -32,6 +33,30 @@ func New(producer *kafka.KafkaClient,
 }
 
 func (s LogSrvc) SendLog(ctx context.Context, req dto.SendLogRequest) (dto.SendLogResponse, error) {
+	project, err := s.cockroachdb.GetProject(ctx, req.ProjectID)
+	if err != nil {
+		return dto.SendLogResponse{}, err
+	}
+
+	if project == nil {
+		return dto.SendLogResponse{}, fmt.Errorf("project not found")
+	}
+
+	if project.APIKey != req.APIKey {
+		return dto.SendLogResponse{}, fmt.Errorf("invalid API key")
+	}
+
+	kafkaDto := models.LogMessage{
+		ProjectID: fmt.Sprintf("%d", project.ID),
+		Name:      req.Name,
+		Timestamp: req.Timestamp,
+		Payload:   req.Payload,
+	}
+
+	err = s.producer.Produce(ctx, kafkaDto)
+	if err != nil {
+		return dto.SendLogResponse{}, err
+	}
 
 	return dto.SendLogResponse{}, nil
 }
