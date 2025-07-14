@@ -59,6 +59,7 @@ func NewCassandraClient(hosts []string, keyspace string) (*CassandraClient, erro
 func (c *CassandraClient) initSchema() error {
 	createTable := `
 	CREATE TABLE IF NOT EXISTS events_raw (
+		id UUID,
 		project_id UUID,
 		event_name TEXT,
 		event_time TIMESTAMP,

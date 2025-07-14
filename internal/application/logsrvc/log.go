@@ -2,6 +2,8 @@ package logsrvc
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/SUT-technology/log-analysis/internal/domain/dto"
 	"github.com/SUT-technology/log-analysis/internal/infrastructure/cassandra"
@@ -36,9 +38,65 @@ func (s LogSrvc) SendLog(ctx context.Context, req dto.SendLogRequest) (dto.SendL
 
 // ListEvents لیستی از خلاصه ایونت‌ها با فیلتر
 func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.ListEventsResponse, error) {
+	const pageSize = 10
+	offset := filters.Page * pageSize
 
-	return dto.ListEventsResponse{}, nil
+	// Build WHERE conditions dynamically
+	conditions := []string{"project_id = {project_id:String}"}
+	params := map[string]interface{}{
+		"project_id": filters.ProjectID,
+	}
+
+	if filters.EventName != "" {
+		conditions = append(conditions, "event_name = {event_name:String}")
+		params["event_name"] = filters.EventName
+	}
+
+	for key, value := range filters.SearchableKeys {
+		conditions = append(conditions, fmt.Sprintf("payload['%s'] = {%s:String}", key, key))
+		params[key] = value
+	}
+
+	whereClause := ""
+	if len(conditions) > 0 {
+		whereClause = "WHERE " + strings.Join(conditions, " AND ")
+	}
+
+	query := fmt.Sprintf(`
+		SELECT 
+			event_name,
+			max(timestamp) AS last_occur,
+			count(*) AS total_count
+		FROM events
+		%s
+		GROUP BY event_name
+		ORDER BY last_occur DESC
+		LIMIT %d OFFSET %d
+	`, whereClause, pageSize, offset)
+
+	// Run query
+	rows, err := s.clickhouse.DB.QueryContext(ctx, query)
+	if err != nil {
+		return dto.ListEventsResponse{}, err
+	}
+	defer rows.Close()
+
+	var events []dto.EventSummary
+	for rows.Next() {
+		var e dto.EventSummary
+		if err := rows.Scan(&e.EventName, &e.LastOccur, &e.TotalCount); err != nil {
+			return dto.ListEventsResponse{}, err
+		}
+		events = append(events, e)
+	}
+
+	return dto.ListEventsResponse{
+		ProjectID: filters.ProjectID,
+		Data: events,
+		Filters: filters,
+	}, nil
 }
+
 
 // DetailEvent جزئیات ایونت فعلی و ناوبری را بازمی‌گرداند
 func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto.DetailEventsResponse, error) {

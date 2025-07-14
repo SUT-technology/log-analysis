@@ -34,9 +34,9 @@ type DetailEventsResponse struct {
 
 // EventFilters ورودی فیلتر
 type EventFilters struct {
-	ProjectID      string            `json:"project_id" binding:"required,uuid"`
+	ProjectID      string            `json:"project_id" query:"project_id" binding:"required,uuid"`
 	SearchableKeys map[string]string `json:"searchable_keys,omitempty"`
-	EventName      string            `json:"event_name,omitempty"`
-	TimeFrom       *time.Time        `json:"time_from,omitempty"`
-	TimeTo         *time.Time        `json:"time_to,omitempty"`
+	EventName      string            `json:"event_name,omitempty" query:"event_name"`
+	Page           int               `json:"page,omitempty" query:"page"`
 }
+

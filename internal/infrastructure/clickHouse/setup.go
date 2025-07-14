@@ -1,6 +1,7 @@
 package clickhouse
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -9,7 +10,11 @@ import (
 )
 
 type ClickHouseSQLClient struct {
-	db *sql.DB
+	DB *sql.DB
+}
+
+func (c *ClickHouseSQLClient) Query(ctx context.Context, param any, params map[string]interface{}) (any, any) {
+	panic("unimplemented")
 }
 
 // NewClickHouseSQLClient با DSN به ClickHouse وصل می‌شود.
@@ -22,7 +27,7 @@ func NewClickHouseSQLClient(dsn string) (*ClickHouseSQLClient, error) {
 	// می‌توانی تنظیمات pool را هم اینجا اعمال کنی
 	db.SetMaxOpenConns(10)
 	db.SetConnMaxLifetime(time.Hour)
-	c := &ClickHouseSQLClient{db: db}
+	c := &ClickHouseSQLClient{DB: db}
 	if err := c.InitClickHouseSchema(); err != nil {
 		return nil, fmt.Errorf("init clickhouse schema: %w", err)
 	}
@@ -45,7 +50,7 @@ func (c *ClickHouseSQLClient) InitClickHouseSchema() error {
 		PARTITION BY toYYYYMM(event_time)
 		ORDER BY (project_id, event_name, event_time);
 	`
-	if _, err := c.db.Exec(query); err != nil {
+	if _, err := c.DB.Exec(query); err != nil {
 		return fmt.Errorf("clickhouse init error: %w", err)
 	}
 	return nil
