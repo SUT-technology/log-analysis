@@ -38,7 +38,6 @@ func Run() error {
 	// راه‌اندازی Kafka
 	producer := kafka.NewKafkaProducer(cfg.Kafka.Brokers, cfg.Kafka.Topic)
 	consumer := kafka.NewKafkaConsumer(cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.GroupID)
-	go Consume(consumer)
 	fmt.Println("Kafka producer and consumer ready")
 
 	// راه‌اندازی Cassandra
@@ -94,6 +93,13 @@ func Run() error {
 		startErr <- fmt.Errorf("HTTP server startup: %w", err)
 	}()
 
+	go func() {
+		log.Println("Starting Kafka consumer...")
+		if err := consumer.ProcessAndInsert(context.Background(), cass, clickhouseClient); err != nil {
+			log.Fatalf("Error processing Kafka messages: %v", err)
+		}
+	}()
+
 	select {
 	case err := <-startErr:
 		slog.Error("failed to start server", slog.Any("error", err))
@@ -103,35 +109,4 @@ func Run() error {
 		return nil
 	}
 
-}
-func Consume(consumer *kafka.KafkaClient) {
-	ctx, cancel := context.WithCancel(context.Background())
-
-	// Handle graceful shutdown
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
-
-	go func() {
-		<-sigCh
-		log.Println("Shutting down Kafka consumer...")
-		cancel()
-	}()
-
-	// Consume loop
-	log.Println("Kafka consumer is running...")
-	for {
-		select {
-		case <-ctx.Done():
-			log.Println("Kafka consumer stopped.")
-			return // <---- added return
-		default:
-			msg, err := consumer.Consume(ctx)
-			if err != nil {
-				log.Printf("Error consuming message: %v", err)
-				continue
-			}
-			// Process the message
-			log.Printf("Received: %s", string(msg))
-		}
-	}
 }

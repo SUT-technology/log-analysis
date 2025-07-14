@@ -3,8 +3,12 @@ package kafka
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"time"
 
+	"github.com/SUT-technology/log-analysis/internal/domain/models"
+	"github.com/SUT-technology/log-analysis/internal/infrastructure/cassandra"
+	clickhouse "github.com/SUT-technology/log-analysis/internal/infrastructure/clickHouse"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -58,4 +62,39 @@ func (k *KafkaClient) Consume(ctx context.Context) ([]byte, error) {
 		return nil, err
 	}
 	return m.Value, nil
+}
+
+// ProcessAndInsert consumes messages from Kafka and inserts them into Cassandra and ClickHouse.
+func (k *KafkaClient) ProcessAndInsert(ctx context.Context, cass *cassandra.CassandraClient, ch *clickhouse.ClickHouseSQLClient) error {
+	for {
+		msg, err := k.Consume(ctx)
+		if err != nil {
+			log.Printf("Error consuming message: %v", err)
+			continue
+		}
+
+		// Deserialize the message into a LogMessage
+		var logMessage models.LogMessage
+		if err := json.Unmarshal(msg, &logMessage); err != nil {
+			log.Printf("Error unmarshalling message: %v", err)
+			continue
+		}
+
+		// Insert into Cassandra
+		eventRaw := models.EventRaw{
+			ProjectID:    logMessage.ProjectID,
+			EventName:    logMessage.Name,
+			EventTime:    logMessage.Timestamp,
+			InsertedTime: logMessage.Timestamp,
+			Payload:      logMessage.Payload,
+		}
+		if err := cass.InsertEvent(ctx, &eventRaw, 3600); err != nil {
+			log.Printf("Error inserting into Cassandra: %v", err)
+		}
+
+		// Insert into ClickHouse
+		if err := ch.InsertEvent(ctx, logMessage); err != nil {
+			log.Printf("Error inserting into ClickHouse: %v", err)
+		}
+	}
 }
