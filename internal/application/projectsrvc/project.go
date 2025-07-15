@@ -25,7 +25,7 @@ func (p ProjectSrvc) ProjectsList(ctx context.Context, userID string) (dto.Proje
 	if err != nil {
 		return dto.ProjectsListRespone{},err
 	}
-	var projectSummeries = make([]dto.ProjectSummery,10)
+	var projectSummeries []dto.ProjectSummery
 	for _,project := range projects {
 		summery := dto.ProjectSummery {
 			ProjectID: project.ID,

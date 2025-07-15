@@ -22,10 +22,6 @@ func New(g *echo.Group, srvc application.Services) *ProjectHndlr {
 }
 
 func (p *ProjectHndlr) ProjectsList(c echo.Context) error {
-	var filters dto.EventFilters
-	if err := c.Bind(&filters); err != nil {
-		return c.JSON(http.StatusBadRequest, err.Error())
-	}
 	userID := c.Param("userID")
 	resp, err := p.Services.ProjectSrvc.ProjectsList(c.Request().Context(), userID)
 	if err != nil {

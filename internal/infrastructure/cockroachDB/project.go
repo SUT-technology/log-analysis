@@ -26,34 +26,52 @@ func (c *CockroachDBClient) GetProject(ctx context.Context, id string) (*models.
 }
 
 func (c *CockroachDBClient) GetProjects(ctx context.Context, userID string) ([]models.Project, error) {
-	projects := make([]models.Project,10)
-	rows,err := c.db.QueryContext(ctx,`SELECT * FROM projects WHERE owner_id = $1`,uuid.MustParse(userID))
+	var projects []models.Project
+
+	rows, err := c.db.QueryContext(ctx,
+		`SELECT id, owner_id, name, api_key, searchable_keys, ttl_seconds, created_at
+		 FROM projects WHERE owner_id = $1`, uuid.MustParse(userID))
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var project models.Project
-		if err := rows.Scan(&project.ID, &project.OwnerID, &project.Name, &project.APIKey, &project.SearchableKeys, &project.TTL, &project.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&project.ID,
+			&project.OwnerID,
+			&project.Name,
+			&project.APIKey,
+			pq.Array(&project.SearchableKeys),
+			&project.TTL,
+			&project.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		projects = append(projects, project)
 	}
 
-	return projects,nil
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return projects, nil
 }
 
 func (c *CockroachDBClient) InsertProject(ctx context.Context, project *models.Project) error {
 	var projectID string
 	err := c.db.QueryRowContext(ctx, `
-	INSERT INTO projects (owner_id, name, api_key, searchable_keys, ttl_seconds)
-	VALUES (?, ?, ?, ?, ?)
-	RETURNING id`,
-	project.OwnerID, project.Name, project.APIKey, project.SearchableKeys, project.TTL).Scan(&projectID)
+		INSERT INTO projects (owner_id, name, api_key, searchable_keys, ttl_seconds)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id`,
+		project.OwnerID, project.Name, project.APIKey, pq.Array(project.SearchableKeys), project.TTL,
+	).Scan(&projectID)
 
-	if err!= nil {
-		return fmt.Errorf("error inserting project, err: %s",err.Error())
+	if err != nil {
+		return fmt.Errorf("error inserting project, err: %w", err)
 	}
-	project.ID=uuid.MustParse(projectID)
+	project.ID = uuid.MustParse(projectID)
 	return nil
 }
+
