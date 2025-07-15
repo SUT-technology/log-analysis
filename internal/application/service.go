@@ -2,6 +2,7 @@ package application
 
 import (
 	"github.com/SUT-technology/log-analysis/internal/application/logsrvc"
+	"github.com/SUT-technology/log-analysis/internal/application/projectsrvc"
 	"github.com/SUT-technology/log-analysis/internal/infrastructure/cassandra"
 	clickhouse "github.com/SUT-technology/log-analysis/internal/infrastructure/clickHouse"
 	cockroachdb "github.com/SUT-technology/log-analysis/internal/infrastructure/cockroachDB"
@@ -10,6 +11,7 @@ import (
 
 type Services struct {
 	LogSrvc logsrvc.LogSrvc
+	ProjectSrvc projectsrvc.ProjectSrvc
 }
 
 func New(producer *kafka.KafkaClient,
@@ -20,5 +22,6 @@ func New(producer *kafka.KafkaClient,
 
 	return Services{
 		LogSrvc: logsrvc.New(producer, cassandra, cockroachdb, clickhouse),
+		ProjectSrvc: projectsrvc.New(cockroachdb),
 	}
 }

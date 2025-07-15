@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/SUT-technology/log-analysis/internal/domain/models"
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
@@ -21,4 +22,22 @@ func (c *CockroachDBClient) GetProject(ctx context.Context, id string) (*models.
 		return nil, err
 	}
 	return project, nil
+}
+
+func (c *CockroachDBClient) GetProjects(ctx context.Context, userID string) ([]models.Project, error) {
+	projects := make([]models.Project,10)
+	rows,err := c.db.QueryContext(ctx,`SELECT * FROM projects WHERE owner_id = $1`,uuid.MustParse(userID))
+	if err != nil {
+		return nil,err
+	}
+
+	for rows.Next() {
+		var project models.Project
+		if err := rows.Scan(&project.ID, &project.OwnerID, &project.Name, &project.APIKey, &project.SearchableKeys, &project.TTL, &project.CreatedAt); err != nil {
+			return nil, err
+		}
+		projects = append(projects, project)
+	}
+
+	return projects,nil
 }
