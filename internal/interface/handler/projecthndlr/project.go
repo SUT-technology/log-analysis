@@ -15,7 +15,8 @@ type ProjectHndlr struct {
 func New(g *echo.Group, srvc application.Services) *ProjectHndlr {
 	handler := &ProjectHndlr{Services: srvc}
 
-	g.GET(":userID",handler.ProjectsList)
+	g.GET("/:userID",handler.ProjectsList)
+	g.POST("/:userID",handler.CreateProject)
 
 	return handler
 }
@@ -23,12 +24,25 @@ func New(g *echo.Group, srvc application.Services) *ProjectHndlr {
 func (p *ProjectHndlr) ProjectsList(c echo.Context) error {
 	var filters dto.EventFilters
 	if err := c.Bind(&filters); err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ListEventsResponse{Filters: dto.EventFilters{}})
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	userID := c.Param("userID")
 	resp, err := p.Services.ProjectSrvc.ProjectsList(c.Request().Context(), userID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, dto.ListEventsResponse{Filters: filters})
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, resp)
 }
+
+func (p *ProjectHndlr) CreateProject(c echo.Context) error {
+	var project dto.NewProjectRequset
+	if err := c.Bind(&project); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp,err := p.Services.ProjectSrvc.SaveProject(c.Request().Context(),project)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+

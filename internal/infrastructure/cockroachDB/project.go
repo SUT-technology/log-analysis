@@ -2,6 +2,7 @@ package cockroachdb
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/SUT-technology/log-analysis/internal/domain/models"
@@ -40,4 +41,19 @@ func (c *CockroachDBClient) GetProjects(ctx context.Context, userID string) ([]m
 	}
 
 	return projects,nil
+}
+
+func (c *CockroachDBClient) InsertProject(ctx context.Context, project *models.Project) error {
+	var projectID string
+	err := c.db.QueryRowContext(ctx, `
+	INSERT INTO projects (owner_id, name, api_key, searchable_keys, ttl_seconds)
+	VALUES (?, ?, ?, ?, ?)
+	RETURNING id`,
+	project.OwnerID, project.Name, project.APIKey, project.SearchableKeys, project.TTL).Scan(&projectID)
+
+	if err!= nil {
+		return fmt.Errorf("error inserting project, err: %s",err.Error())
+	}
+	project.ID=uuid.MustParse(projectID)
+	return nil
 }

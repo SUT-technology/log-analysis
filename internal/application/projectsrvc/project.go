@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/SUT-technology/log-analysis/internal/domain/dto"
+	"github.com/SUT-technology/log-analysis/internal/domain/models"
 	cockroachdb "github.com/SUT-technology/log-analysis/internal/infrastructure/cockroachDB"
 	"github.com/google/uuid"
 )
@@ -37,5 +38,29 @@ func (p ProjectSrvc) ProjectsList(ctx context.Context, userID string) (dto.Proje
 	return dto.ProjectsListRespone{
 		UserID: uuid.MustParse(userID),
 		Projects: projectSummeries,
+	},nil
+}
+
+func (p ProjectSrvc) SaveProject(ctx context.Context,project dto.NewProjectRequset)(dto.NewProjectResponse,error) {
+
+	var model = models.Project{
+		OwnerID: uuid.MustParse(project.OwnerID),
+		Name: project.Name,
+		APIKey: project.APIKey,
+		SearchableKeys: project.SearchableKeys,
+		TTL: project.TTL,
+	}
+
+	if err:=p.cockroachdb.InsertProject(ctx,&model);err!=nil {
+		return dto.NewProjectResponse{},err
+	}
+
+	return dto.NewProjectResponse{
+		ID: (model.ID).String(),
+		OwnerID: (model.OwnerID).String(),
+		Name: model.Name,
+		APIKey: model.APIKey,
+		SearchableKeys: model.SearchableKeys,
+		TTL: model.TTL,
 	},nil
 }
