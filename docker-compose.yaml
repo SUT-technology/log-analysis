@@ -12,6 +12,7 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
 
+
   kafka1:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka1
@@ -68,8 +69,8 @@ services:
       - CASSANDRA_DC=my-datacenter-1
     volumes:
       - cassandra-node-1:/var/lib/cassandra:rw
-    restart:
-      on-failure
+    # restart:
+    #   on-failure
     healthcheck:
       test: ["CMD-SHELL", "nodetool status"]
       interval: 2m
@@ -97,8 +98,8 @@ services:
         condition: service_healthy
     volumes:
       - cassandra-node-2:/var/lib/cassandra:rw
-    restart:
-      on-failure
+    # restart:
+    #   on-failure
     healthcheck:
       test: ["CMD-SHELL", "nodetool status"]
       interval: 2m
@@ -126,8 +127,8 @@ services:
         condition: service_healthy
     volumes:
       - cassandra-node-3:/var/lib/cassandra:rw
-    restart:
-      on-failure
+    # restart:
+    #   on-failure
     healthcheck:
       test: ["CMD-SHELL", "nodetool status"]
       interval: 2m

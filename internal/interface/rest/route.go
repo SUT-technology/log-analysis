@@ -14,13 +14,12 @@ func register(e *echo.Echo, srvc application.Services, m *middlewares) {
 
 	logs := e.Group("/api/logs", m.JWTMiddleware)
 	loghndlr.New(logs, srvc)
+	
 	projects := e.Group("/api/projects", m.JWTMiddleware)
 	projecthndlr.New(projects, srvc)
 
 	auth := e.Group("/api/auth")
 	authhndlr.New(auth, srvc)
 
-	projects := e.Group("/api/projects")
-	projecthndlr.New(projects,srvc)
 
 }
