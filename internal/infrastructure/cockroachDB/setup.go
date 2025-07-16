@@ -7,6 +7,7 @@ import (
 
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type CockroachDBClient struct {
@@ -55,13 +56,13 @@ func (c *CockroachDBClient) InitCockroachSchema() error {
 	}
 
 	// Insert a test project and user
-	// ownerID, err := c.InsertTestUser()
-	// if err != nil {
-	// 	return fmt.Errorf("insert test user: %w", err)
-	// }
-	// if err := c.InsertTestProject(ownerID); err != nil {
-	// 	return fmt.Errorf("insert test project: %w", err)
-	// }
+	ownerID, err := c.InsertTestUser()
+	if err != nil {
+		return fmt.Errorf("insert test user: %w", err)
+	}
+	if err := c.InsertTestProject(ownerID); err != nil {
+		return fmt.Errorf("insert test project: %w", err)
+	}
 	return nil
 }
 
@@ -90,11 +91,12 @@ func (c *CockroachDBClient) InsertTestUser() (string, error) {
 	RETURNING id;
 	`
 
-	username := "testuser"
-	passwordHash := "hashedpassword123"
+	username := "mahdi"
+	password := "123456"
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
 	var userID string
-	err := c.db.QueryRow(stmt, username, passwordHash).Scan(&userID)
+	err = c.db.QueryRow(stmt, username, hashedPassword).Scan(&userID)
 	if err != nil {
 		return "", fmt.Errorf("failed to insert test user: %w", err)
 	}

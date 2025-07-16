@@ -21,3 +21,4 @@ clickhouse:
 server:
   addr: "0.0.0.0:8000"
   port: 8000
+  secret_key: log-analytics-001
