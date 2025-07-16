@@ -12,7 +12,7 @@ import (
 )
 
 type Services struct {
-	LogSrvc     logsrvc.LogSrvc
+	LogSrvc logsrvc.LogSrvc
 	AuthSrvc    authsrvc.AuthSrvc
 	ProjectSrvc projectsrvc.ProjectSrvc
 }
@@ -25,8 +25,8 @@ func New(producer *kafka.KafkaClient,
 	cfg config.Config) Services {
 
 	return Services{
+		ProjectSrvc: projectsrvc.New(cockroachdb),
 		LogSrvc:     logsrvc.New(producer, cassandra, cockroachdb, clickhouse),
 		AuthSrvc:    authsrvc.NewAuthSrvc(cockroachdb, cfg.Server.SecretKey),
-		ProjectSrvc: projectsrvc.NewProjectSrvc(cockroachdb),
 	}
 }

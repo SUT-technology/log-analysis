@@ -4,9 +4,8 @@ import (
 	"net/http"
 
 	"github.com/SUT-technology/log-analysis/internal/application"
-	"github.com/google/uuid"
+	"github.com/SUT-technology/log-analysis/internal/domain/dto"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/gommon/log"
 )
 
 type ProjectHndlr struct {
@@ -16,20 +15,31 @@ type ProjectHndlr struct {
 func New(g *echo.Group, srvc application.Services) *ProjectHndlr {
 	handler := &ProjectHndlr{Services: srvc}
 
-	g.GET("", handler.GetProjects)
+
+	g.GET("/:userID",handler.ProjectsList)
+	g.POST("",handler.CreateProject)
 
 	return handler
 }
 
-func (h *ProjectHndlr) GetProjects(c echo.Context) error {
-	userId, ok := c.Get("user_id").(uuid.UUID)
-	if !ok {
-		return nil
-	}
-	resp, err := h.Services.ProjectSrvc.GetUserProjects(c.Request().Context(), userId)
+func (p *ProjectHndlr) ProjectsList(c echo.Context) error {
+	userID := c.Param("userID")
+	resp, err := p.Services.ProjectSrvc.ProjectsList(c.Request().Context(), userID)
 	if err != nil {
-		log.Error("Failed to send log:", err)
-		return c.JSON(http.StatusInternalServerError, nil)
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, resp)
 }
+
+func (p *ProjectHndlr) CreateProject(c echo.Context) error {
+	var project dto.NewProjectRequset
+	if err := c.Bind(&project); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	resp,err := p.Services.ProjectSrvc.SaveProject(c.Request().Context(),project)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+

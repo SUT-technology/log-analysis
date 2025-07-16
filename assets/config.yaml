@@ -1,16 +1,23 @@
 cockroach:
-  dsn: "postgresql://root@cockroach:26257/defaultdb?sslmode=disable"
+  dsn: "postgresql://root@cockroach1:26257,root@cockroach2:26257,root@cockroach3:26257/defaultdb?sslmode=disable"
+
 
 kafka:
   brokers:
-    - "kafka:9092"
+    - "kafka1:9092"
+    - "kafka2:9093"
+    - "kafka3:9094"
   topic: "logs_raw"
   group_id: "log_consumer_group"
 
+
 cassandra:
   hosts:
-    - "cassandra"
+    - "cassandra1"
+    - "cassandra2"
+    - "cassandra3"
   keyspace: "logks"
+
 
 clickhouse:
   addr: "clickhouse:9000"

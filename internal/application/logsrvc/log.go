@@ -68,9 +68,6 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 
 	// Build WHERE conditions dynamically
 	conditions := []string{"project_id = {project_id:String}"}
-	// params := map[string]interface{}{
-	// 	"project_id": filters.ProjectID,
-	// }
 
 	if filters.EventName != "" {
 		conditions = append(conditions, "event_name = {event_name:String}")
@@ -128,12 +125,9 @@ func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto
 
 	// Build WHERE conditions dynamically
 	conditions := []string{fmt.Sprintf("project_id = {%s:String}",filters.ProjectID)}
-	// params := map[string]interface{}{
-	// 	"project_id": filters.ProjectID,
-	// }
+
 	if filters.EventName != "" {
 		conditions = append(conditions, "event_name = {event_name:String}")
-		// params["event_name"] = filters.EventName
 	}
 
 	for key := range filters.SearchableKeys {

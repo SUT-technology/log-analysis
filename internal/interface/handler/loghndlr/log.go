@@ -12,7 +12,7 @@ import (
 type LogHndlr struct {
 	Services application.Services
 }
-
+		
 func New(g *echo.Group, srvc application.Services) *LogHndlr {
 	handler := &LogHndlr{Services: srvc}
 

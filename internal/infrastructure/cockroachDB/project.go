@@ -2,6 +2,7 @@ package cockroachdb
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/SUT-technology/log-analysis/internal/domain/models"
@@ -24,19 +25,21 @@ func (c *CockroachDBClient) GetProject(ctx context.Context, id string) (*models.
 	return project, nil
 }
 
-func (c *CockroachDBClient) GetUserProjects(ctx context.Context, ownerID uuid.UUID) ([]*models.Project, error) {
 
-	rows, err := c.db.QueryContext(ctx, `
-		SELECT id, owner_id, name, api_key, searchable_keys, ttl_seconds, created_at
-		FROM projects WHERE owner_id = $1`, ownerID)
+func (c *CockroachDBClient) GetProjects(ctx context.Context, userID string) ([]models.Project, error) {
+	var projects []models.Project
+
+	rows, err := c.db.QueryContext(ctx,
+		`SELECT id, owner_id, name, api_key, searchable_keys, ttl_seconds, created_at
+		 FROM projects WHERE owner_id = $1`, uuid.MustParse(userID))
+
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var projects []*models.Project
 	for rows.Next() {
-		project := &models.Project{}
+		var project models.Project
 		if err := rows.Scan(
 			&project.ID,
 			&project.OwnerID,
@@ -56,4 +59,20 @@ func (c *CockroachDBClient) GetUserProjects(ctx context.Context, ownerID uuid.UU
 	}
 
 	return projects, nil
+}
+
+func (c *CockroachDBClient) InsertProject(ctx context.Context, project *models.Project) error {
+	var projectID string
+	err := c.db.QueryRowContext(ctx, `
+		INSERT INTO projects (owner_id, name, api_key, searchable_keys, ttl_seconds)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id`,
+		project.OwnerID, project.Name, project.APIKey, pq.Array(project.SearchableKeys), project.TTL,
+	).Scan(&projectID)
+
+	if err != nil {
+		return fmt.Errorf("error inserting project, err: %w", err)
+	}
+	project.ID = uuid.MustParse(projectID)
+	return nil
 }

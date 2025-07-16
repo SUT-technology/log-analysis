@@ -31,15 +31,24 @@ func NewCockroachDBClient(dsn string) (*CockroachDBClient, error) {
 	return c, nil
 }
 
+
 func (c *CockroachDBClient) InitCockroachSchema() error {
-	stmts := []string{
-		`CREATE TABLE IF NOT EXISTS users (
+	// 1. Create users first
+	_, err := c.db.Exec(`
+		CREATE TABLE IF NOT EXISTS users (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			username STRING NOT NULL UNIQUE,
 			password_hash STRING NOT NULL,
 			created_at TIMESTAMPTZ DEFAULT now()
-		);`,
-		`CREATE TABLE IF NOT EXISTS projects (
+		);
+	`)
+	if err != nil {
+		return fmt.Errorf("cockroach init (users): %w", err)
+	}
+
+	// 2. Then create projects
+	_, err = c.db.Exec(`
+		CREATE TABLE IF NOT EXISTS projects (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
 			name STRING NOT NULL,
@@ -47,12 +56,10 @@ func (c *CockroachDBClient) InitCockroachSchema() error {
 			searchable_keys STRING[] NOT NULL,
 			ttl_seconds INT NOT NULL,
 			created_at TIMESTAMPTZ DEFAULT now()
-		);`,
-	}
-	for _, stmt := range stmts {
-		if _, err := c.db.Exec(stmt); err != nil {
-			return fmt.Errorf("cockroach init error: %w", err)
-		}
+		);
+	`)
+	if err != nil {
+		return fmt.Errorf("cockroach init (projects): %w", err)
 	}
 
 	// Insert a test project and user
