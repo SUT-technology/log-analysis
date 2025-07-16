@@ -17,6 +17,8 @@ func NewCassandraClient(hosts []string, keyspace string) (*CassandraClient, erro
 	tempCluster := gocql.NewCluster(hosts...)
 	tempCluster.Consistency = gocql.Quorum
 	tempCluster.ConnectTimeout = 10 * time.Second
+	tempCluster.PoolConfig.HostSelectionPolicy = gocql.TokenAwareHostPolicy(gocql.RoundRobinHostPolicy())
+	tempCluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: 3}
 
 	tempSession, err := tempCluster.CreateSession()
 	if err != nil {
@@ -40,6 +42,8 @@ func NewCassandraClient(hosts []string, keyspace string) (*CassandraClient, erro
 	mainCluster.Keyspace = keyspace
 	mainCluster.Consistency = gocql.Quorum
 	mainCluster.ConnectTimeout = 10 * time.Second
+	mainCluster.PoolConfig.HostSelectionPolicy = gocql.TokenAwareHostPolicy(gocql.RoundRobinHostPolicy())
+	mainCluster.RetryPolicy = &gocql.SimpleRetryPolicy{NumRetries: 3}
 
 	mainSession, err := mainCluster.CreateSession()
 	if err != nil {
@@ -55,6 +59,7 @@ func NewCassandraClient(hosts []string, keyspace string) (*CassandraClient, erro
 
 	return client, nil
 }
+
 
 func (c *CassandraClient) initSchema() error {
 	createTable := `
