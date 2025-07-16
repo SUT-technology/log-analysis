@@ -14,3 +14,11 @@ func (c *CockroachDBClient) GetUser(ctx context.Context, id string) (*models.Use
 	}
 	return user, nil
 }
+func (c *CockroachDBClient) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	user := &models.User{}
+	row := c.db.QueryRowContext(ctx, `SELECT id, username, password_hash, created_at FROM users WHERE username = $1`, username)
+	if err := row.Scan(&user.ID, &user.Username, &user.Password, &user.CreatedAt); err != nil {
+		return nil, err
+	}
+	return user, nil
+}

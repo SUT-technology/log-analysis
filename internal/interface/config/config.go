@@ -27,8 +27,9 @@ type Config struct {
 		Database string `yaml:"database"`
 	} `yaml:"clickhouse"`
 	Server struct {
-		Addr string `yaml:"addr"`
-		Port string `yaml:"port"`
+		Addr      string `yaml:"addr"`
+		Port      string `yaml:"port"`
+		SecretKey string `yaml:"secret_key"`
 	} `yaml:"server"`
 }
 

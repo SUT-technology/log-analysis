@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dark Log Dashboard</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --surface: #1e1e1e;
+      --primary: #bb86fc;
+      --text: #e0e0e0;
+      --accent: #03dac6;
+      --error: #cf6679;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: var(--surface);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 { color: var(--primary); }
+    main { flex: 1; padding: 2rem; }
+    .hidden { display: none; }
+    form, .panel { background: var(--surface); padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    input, select, button { width: 100%; padding: 0.75rem; margin-top: 0.5rem; background: #2a2a2a; border: 1px solid #333; border-radius: 4px; color: var(--text); }
+    button { background: var(--primary); color: #121212; font-weight: bold; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #333; }
+    th { background: #272727; }
+    tr:hover { background: #2a2a2a; cursor: pointer; }
+    .filters { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .filters > div { flex: 1; }
+    nav.breadcrumbs { margin-bottom: 1rem; font-size: 0.9rem; }
+    nav.breadcrumbs span { color: var(--accent); cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Log Dashboard</h1>
+    <button id="btn-logout" class="hidden">Logout</button>
+  </header>
+  <main>
+    <!-- Login View -->
+    <div id="view-login" class="panel">
+      <h2>Login</h2>
+      <form id="form-login">
+        <label>Username<input type="text" id="username" required /></label>
+        <label>Password<input type="password" id="password" required /></label>
+        <button type="submit">Sign In</button>
+      </form>
+      <p id="login-error" style="color: var(--error);"></p>
+    </div>
+
+    <!-- Projects List -->
+    <div id="view-projects" class="panel hidden">
+      <h2>Your Projects</h2>
+      <ul id="project-list"></ul>
+    </div>
+
+    <!-- Events Summary -->
+    <div id="view-summary" class="panel hidden">
+      <nav class="breadcrumbs"><span id="back-projects">← Projects</span> / <strong>Events</strong></nav>
+      <h2>Event Summary</h2>
+      <div class="filters" id="filter-container">
+        <!-- Dynamically rendered searchable key inputs -->
+      </div>
+      <button id="btn-refresh">Refresh</button>
+      <table>
+        <thead><tr><th>Name</th><th>Last Occurred</th><th>Total</th></tr></thead>
+        <tbody id="summary-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Event Detail -->
+    <div id="view-detail" class="panel hidden">
+      <nav class="breadcrumbs"><span id="back-summary">← Summary</span> / <strong>Detail</strong></nav>
+      <h2>Event Detail</h2>
+      <div id="detail-info"></div>
+      <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <button id="btn-prev">Previous</button>
+        <button id="btn-next">Next</button>
+      </div>
+    </div>
+  </main>
+  <script>
+    const API_BASE = 'localhost:8000'; // set your API base URL
+    let token = null;   
+    let currentProject = null;
+    let appliedFilters = {};
+
+    // Helper: show view
+    function showView(id) {
+      ['view-login','view-projects','view-summary','view-detail'].forEach(v=> document.getElementById(v).classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    // Login
+    document.getElementById('form-login').addEventListener('submit', async e => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      try {
+        const res = await fetch(API_BASE + '/auth/login', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.token) {
+          token = data.token;
+          document.getElementById('btn-logout').classList.remove('hidden');
+          loadProjects();
+          showView('view-projects');
+        } else throw new Error(data.message||'Login failed');
+      } catch(err) { document.getElementById('login-error').textContent = err.message; }
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', () => { token=null; showView('view-login'); });
+
+    // Load projects
+    async function loadProjects() {
+      const res = await fetch(API_BASE + '/api/projects', { headers:{ 'Authorization':'Bearer '+token }});
+      const list = await res.json();
+      const ul = document.getElementById('project-list'); ul.innerHTML='';
+      list.forEach(p=>{
+        const li = document.createElement('li');
+        li.textContent = p.name;
+        li.addEventListener('click', ()=> openSummary(p));
+        ul.append(li);
+      });
+    }
+
+    // Open summary
+    function openSummary(project) {
+      currentProject = project;
+      appliedFilters = { project_id: project.id };
+      renderFilters(project.searchable_keys);
+      fetchSummary();
+      showView('view-summary');
+    }
+
+    function renderFilters(keys){
+      const container = document.getElementById('filter-container'); container.innerHTML='';
+      keys.forEach(key=>{
+        const div=document.createElement('div');
+        div.innerHTML = `<label>${key}<input data-key="${key}" /></label>`;
+        container.append(div);
+      });
+    }
+
+    async function fetchSummary(){
+      const qs = new URLSearchParams();
+      Object.entries(appliedFilters).forEach(([k,v])=> qs.append(k,v));
+      document.querySelectorAll('#filter-container input').forEach(inp=>{
+        if (inp.value) qs.append(`searchable_keys[${inp.dataset.key}]`, inp.value);
+      });
+      const res = await fetch(API_BASE + '/api/events?'+qs.toString(), { headers:{ 'Authorization':'Bearer '+token }});
+      const data = await res.json();
+      const tbody = document.getElementById('summary-body'); tbody.innerHTML='';
+      data.data.forEach(row=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${row.event_name}</td><td>${new Date(row.last_occur).toLocaleString()}</td><td>${row.total_count}</td>`;
+        tr.addEventListener('click', ()=> openDetail(row.event_name));
+        tbody.append(tr);
+      });
+    }
+    document.getElementById('btn-refresh').addEventListener('click', fetchSummary);
+
+    function openDetail(name){
+      appliedFilters.event_name = name;
+      appliedFilters.position = '';
+      loadDetail();
+      showView('view-detail');
+    }
+
+    async function loadDetail() {
+      const qs=new URLSearchParams();
+      Object.entries(appliedFilters).forEach(([k,v])=> qs.append(k,v));
+      const res = await fetch(API_BASE + `/api/events/${encodeURIComponent(appliedFilters.event_name)}?`+qs.toString(), { headers:{ 'Authorization':'Bearer '+token }});
+      const d=await res.json();
+      const info=document.getElementById('detail-info'); info.innerHTML='';
+      const ev=d.current_event;
+      for(const [k,v] of Object.entries(ev.payload)){ info.innerHTML += `<p><strong>${k}:</strong> ${v}</p>`; }
+      info.innerHTML += `<p><strong>Occurred:</strong> ${new Date(ev.event_time).toLocaleString()}</p>`;
+      info.innerHTML += `<p><strong>Inserted:</strong> ${new Date(ev.inserted_time).toLocaleString()}</p>`;
+      // set positions
+      appliedFilters.position = d.filters.position;
+    }
+
+    document.getElementById('btn-prev').addEventListener('click', ()=> { /* set position to previous */ loadDetail(); });
+    document.getElementById('btn-next').addEventListener('click', ()=> { /* set position to next */ loadDetail(); });
+  </script>
+</body>
+</html>

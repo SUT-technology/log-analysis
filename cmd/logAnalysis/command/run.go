@@ -62,7 +62,7 @@ func Run() error {
 	}
 	fmt.Println("Connected to ClickHouse2")
 
-	srvc := application.New(producer, consumer, cass, crdb, clickhouseClient)
+	srvc := application.New(producer, consumer, cass, crdb, clickhouseClient, cfg)
 
 	// می‌توانید از این کلاینت‌ها در سرویستان استفاده کنید...
 	_ = crdb

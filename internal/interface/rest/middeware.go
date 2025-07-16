@@ -2,8 +2,11 @@ package rest
 
 import (
 	"net/http"
+	"strings"
 
+	"github.com/SUT-technology/log-analysis/internal/domain/models"
 	"github.com/SUT-technology/log-analysis/internal/interface/config"
+	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -16,32 +19,34 @@ func newMiddlewares(cfg config.Config) *middlewares {
 	return &middlewares{cfg: cfg}
 }
 
-// func (m *middlewares) JWTMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-// 	return func(c echo.Context) error {
-// 		// Get token from cookies
-// 		cookie, err := c.Cookie("token")
-// 		if err != nil {
-// 			return c.Render(http.StatusBadRequest, "login.html", nil)
-// 		}
+func (m *middlewares) JWTMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Get token from cookies
+		authHeader := c.Request().Header.Get("Authorization")
+		if authHeader == "" {
+			return c.JSON(http.StatusUnauthorized, "invalid token")
+		}
 
-// 		// Parse JWT
-// 		tokenStr := strings.TrimSpace(cookie.Value)
-// 		claims := &model.JWTClaims{}
-// 		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-// 			return []byte(m.cfg.Server.SecretKey), nil
-// 		})
-// 		if err != nil || !token.Valid {
-// 			return c.Render(http.StatusBadRequest, "login.html", nil)
-// 		}
+		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+		if tokenStr == authHeader {
+			return c.JSON(http.StatusUnauthorized, "invalid token")
+		}
+		claims := &models.JWTClaims{}
+		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(m.cfg.Server.SecretKey), nil
+		})
+		if err != nil || !token.Valid {
+			return c.JSON(http.StatusUnauthorized, "invalid token")
+		}
 
-// 		// Store claims in context
+		// Store claims in context
 
-// 		c.Set("user_id", claims.UserID)
-// 		c.Set("is_admin", claims.IsAdmin)
+		c.Set("user_id", claims.UserID)
+		c.Set("username", claims.Username)
 
-// 		return next(c)
-// 	}
-// }
+		return next(c)
+	}
+}
 
 // func (m *middlewares) rateLimiterMiddleware() echo.MiddlewareFunc {
 // 	cfg := middleware.RateLimiterConfig{

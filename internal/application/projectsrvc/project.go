@@ -9,7 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
 type ProjectSrvc struct {
 	cockroachdb *cockroachdb.CockroachDBClient
 }

@@ -15,8 +15,9 @@ type ProjectHndlr struct {
 func New(g *echo.Group, srvc application.Services) *ProjectHndlr {
 	handler := &ProjectHndlr{Services: srvc}
 
+
 	g.GET("/:userID",handler.ProjectsList)
-	g.POST("/:userID",handler.CreateProject)
+	g.POST("",handler.CreateProject)
 
 	return handler
 }
