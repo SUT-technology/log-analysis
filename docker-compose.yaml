@@ -72,16 +72,16 @@ services:
     # restart:
     #   on-failure
     healthcheck:
-      test: ["CMD-SHELL", "nodetool status"]
-      interval: 2m
-      start_period: 2m
+      test: ["CMD-SHELL", "nodetool status | grep UN"]
+      interval: 10s
       timeout: 10s
-      retries: 3
+      retries: 30
 
   cassandra-2:
     image: "cassandra:4.0"  # cassandra:4.1.3
     container_name: "cassandra-2"
     ports:
+      - 7001:7000
       - 9043:9042
     networks:
       - cassandra-net
@@ -101,11 +101,10 @@ services:
     # restart:
     #   on-failure
     healthcheck:
-      test: ["CMD-SHELL", "nodetool status"]
-      interval: 2m
-      start_period: 2m
+      test: ["CMD-SHELL", "nodetool status | grep UN"]
+      interval: 10s
       timeout: 10s
-      retries: 3
+      retries: 30 
 
   cassandra-3:
     image: "cassandra:4.0"  # cassandra:4.1.3
@@ -130,11 +129,10 @@ services:
     # restart:
     #   on-failure
     healthcheck:
-      test: ["CMD-SHELL", "nodetool status"]
-      interval: 2m
-      start_period: 2m
+      test: ["CMD-SHELL", "nodetool status | grep UN"]
+      interval: 10s
       timeout: 10s
-      retries: 3
+      retries: 30
 
 
 

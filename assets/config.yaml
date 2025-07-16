@@ -13,9 +13,9 @@ kafka:
 
 cassandra:
   hosts:
-    - "cassandra1"
-    - "cassandra2"
-    - "cassandra3"
+    - "cassandra-1"
+    - "cassandra-2"
+    - "cassandra-3"
   keyspace: "logks"
 
 
