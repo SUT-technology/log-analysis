@@ -1,8 +1,6 @@
 version: '3.8'
 
-networks:
-  cassandra-net:
-    driver: bridge
+
 
 services:
 
@@ -157,6 +155,8 @@ services:
     ports:
       - "26257:26257"
       - "8080:8080"
+    networks:
+      - backend
     volumes:
       - cockroach-data1:/cockroach/cockroach-data
 
@@ -164,6 +164,8 @@ services:
     image: cockroachdb/cockroach:v23.1.0
     command: start --insecure --join=cockroach1,cockroach2,cockroach3 --advertise-addr=cockroach2
     hostname: cockroach2
+    networks:
+      - backend
     volumes:
       - cockroach-data2:/cockroach/cockroach-data
 
@@ -171,6 +173,8 @@ services:
     image: cockroachdb/cockroach:v23.1.0
     command: start --insecure --join=cockroach1,cockroach2,cockroach3 --advertise-addr=cockroach3
     hostname: cockroach3
+    networks:
+      - backend
     volumes:
       - cockroach-data3:/cockroach/cockroach-data
 
@@ -179,6 +183,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: log-api
+    networks:
+      - backend
     depends_on:
       - kafka1
       - kafka2
@@ -192,6 +198,12 @@ services:
       - cockroach3
     ports:
       - "8000:8000"
+
+networks:
+  cassandra-net:
+    driver: bridge
+  backend:
+    driver: bridge
 
 volumes:
   clickhouse-data:
