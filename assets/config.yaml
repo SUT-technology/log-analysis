@@ -1,5 +1,5 @@
 cockroach:
-  dsn: "postgresql://root@cockroach1:26257,root@cockroach2:26257,root@cockroach3:26257/defaultdb?sslmode=disable"
+  dsn: "postgresql://root@cockroach1:26257"
 
 
 kafka:

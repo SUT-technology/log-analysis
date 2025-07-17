@@ -1,6 +1,8 @@
 # مرحله Build
 FROM golang:1.23.2 AS builder
 
+ENV GOPROXY=https://goproxy.cn,direct
+
 WORKDIR /app
 
 COPY go.mod go.sum ./
