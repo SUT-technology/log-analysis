@@ -25,13 +25,12 @@ func (c *CockroachDBClient) GetProject(ctx context.Context, id string) (*models.
 	return project, nil
 }
 
-
-func (c *CockroachDBClient) GetProjects(ctx context.Context, userID string) ([]models.Project, error) {
+func (c *CockroachDBClient) GetProjects(ctx context.Context, userID uuid.UUID) ([]models.Project, error) {
 	var projects []models.Project
 
 	rows, err := c.db.QueryContext(ctx,
 		`SELECT id, owner_id, name, api_key, searchable_keys, ttl_seconds, created_at
-		 FROM projects WHERE owner_id = $1`, uuid.MustParse(userID))
+		 FROM projects WHERE owner_id = $1`, userID)
 
 	if err != nil {
 		return nil, err

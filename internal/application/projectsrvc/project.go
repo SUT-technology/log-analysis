@@ -19,47 +19,47 @@ func New(cockroachdb *cockroachdb.CockroachDBClient) ProjectSrvc {
 	}
 }
 
-func (p ProjectSrvc) ProjectsList(ctx context.Context, userID string) (dto.ProjectsListRespone,error) {
-	projects,err:= p.cockroachdb.GetProjects(ctx,userID)
+func (p ProjectSrvc) ProjectsList(ctx context.Context, userID uuid.UUID) (dto.ProjectsListRespone, error) {
+	projects, err := p.cockroachdb.GetProjects(ctx, userID)
 	if err != nil {
-		return dto.ProjectsListRespone{},err
+		return dto.ProjectsListRespone{}, err
 	}
 	var projectSummeries []dto.ProjectSummery
-	for _,project := range projects {
-		summery := dto.ProjectSummery {
-			ProjectID: project.ID,
-			ProjectName: project.Name,
+	for _, project := range projects {
+		summery := dto.ProjectSummery{
+			ProjectID:      project.ID,
+			ProjectName:    project.Name,
 			SearchableKeys: project.SearchableKeys,
 		}
 		projectSummeries = append(projectSummeries, summery)
 	}
 
 	return dto.ProjectsListRespone{
-		UserID: uuid.MustParse(userID),
+		UserID:   userID,
 		Projects: projectSummeries,
-	},nil
+	}, nil
 }
 
-func (p ProjectSrvc) SaveProject(ctx context.Context,project dto.NewProjectRequset)(dto.NewProjectResponse,error) {
+func (p ProjectSrvc) SaveProject(ctx context.Context, project dto.NewProjectRequset) (dto.NewProjectResponse, error) {
 
 	var model = models.Project{
-		OwnerID: uuid.MustParse(project.OwnerID),
-		Name: project.Name,
-		APIKey: project.APIKey,
+		OwnerID:        uuid.MustParse(project.OwnerID),
+		Name:           project.Name,
+		APIKey:         project.APIKey,
 		SearchableKeys: project.SearchableKeys,
-		TTL: project.TTL,
+		TTL:            project.TTL,
 	}
 
-	if err:=p.cockroachdb.InsertProject(ctx,&model);err!=nil {
-		return dto.NewProjectResponse{},err
+	if err := p.cockroachdb.InsertProject(ctx, &model); err != nil {
+		return dto.NewProjectResponse{}, err
 	}
 
 	return dto.NewProjectResponse{
-		ID: (model.ID).String(),
-		OwnerID: (model.OwnerID).String(),
-		Name: model.Name,
-		APIKey: model.APIKey,
+		ID:             (model.ID).String(),
+		OwnerID:        (model.OwnerID).String(),
+		Name:           model.Name,
+		APIKey:         model.APIKey,
 		SearchableKeys: model.SearchableKeys,
-		TTL: model.TTL,
-	},nil
+		TTL:            model.TTL,
+	}, nil
 }

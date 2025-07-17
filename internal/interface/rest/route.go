@@ -20,7 +20,4 @@ func register(e *echo.Echo, srvc application.Services, m *middlewares) {
 	auth := e.Group("/api/auth")
 	authhndlr.New(auth, srvc)
 
-	projects := e.Group("/api/projects")
-	projecthndlr.New(projects,srvc)
-
 }
