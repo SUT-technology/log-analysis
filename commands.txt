@@ -1,0 +1,5 @@
+# to cluster cockroach
+    docker-compose exec cockroach1 ./cockroach init --insecure 
+
+# cockroach sql console
+    docker-compose exec cockroach1 ./cockroach sql --insecure    
