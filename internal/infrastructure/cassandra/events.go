@@ -2,6 +2,7 @@ package cassandra
 
 import (
 	"context"
+	"time"
 
 	"github.com/SUT-technology/log-analysis/internal/domain/models"
 )
@@ -10,6 +11,6 @@ import (
 func (c *CassandraClient) InsertEvent(ctx context.Context, evt *models.EventRaw, ttl int) error {
 	return c.session.Query(
 		`INSERT INTO events_raw (project_id, event_name, event_time, inserted_time, payload) VALUES (?, ?, ?, ?, ?) USING TTL ?`,
-		evt.ProjectID, evt.EventName, evt.EventTime, evt.InsertedTime, evt.Payload, ttl,
+		evt.ProjectID.String(), evt.EventName, evt.EventTime, time.Now(), evt.Payload, ttl,
 	).WithContext(ctx).Exec()
 }

@@ -1,5 +1,5 @@
 cockroach:
-  dsn: "postgresql://root@cockroach:26257/defaultdb?sslmode=disable"
+  dsn: "postgresql://root@cockroach1:26257/defaultdb?sslmode=disable"
 
 kafka:
   brokers:
@@ -9,6 +9,7 @@ kafka:
 
 cassandra:
   hosts:
+<<<<<<< HEAD
 <<<<<<< Updated upstream
     - "cassandra1"
     - "cassandra2"
@@ -16,6 +17,9 @@ cassandra:
 =======
     - "cassandra"
 >>>>>>> Stashed changes
+=======
+    - "cassandra"
+>>>>>>> c5ea2eb4ac1fe2a2bba4565c6779ac3f991786c5
   keyspace: "logks"
 
 clickhouse:

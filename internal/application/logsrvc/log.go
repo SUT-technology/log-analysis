@@ -35,6 +35,7 @@ func New(producer *kafka.KafkaClient,
 func (s LogSrvc) SendLog(ctx context.Context, req dto.SendLogRequest) (dto.SendLogResponse, error) {
 	project, err := s.cockroachdb.GetProject(ctx, req.ProjectID)
 	if err != nil {
+		fmt.Errorf("error debug: %w",err)
 		return dto.SendLogResponse{}, err
 	}
 

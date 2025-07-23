@@ -62,13 +62,13 @@ func (c *CockroachDBClient) InitCockroachSchema() error {
 	}
 
 	// Insert a test project and user
-	ownerID, err := c.InsertTestUser()
-	if err != nil {
-		return fmt.Errorf("insert test user: %w", err)
-	}
-	if err := c.InsertTestProject(ownerID); err != nil {
-		return fmt.Errorf("insert test project: %w", err)
-	}
+	// ownerID, err := c.InsertTestUser()
+	// if err != nil {
+	// 	return fmt.Errorf("insert test user: %w", err)
+	// }
+	// if err := c.InsertTestProject(ownerID); err != nil {
+	// 	return fmt.Errorf("insert test project: %w", err)
+	// }
 	return nil
 }
 
