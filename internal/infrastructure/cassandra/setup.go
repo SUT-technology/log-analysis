@@ -30,7 +30,7 @@ func NewCassandraClient(hosts []string, keyspace string) (*CassandraClient, erro
 	createKeyspace := fmt.Sprintf(`
 		CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {
 			'class': 'NetworkTopologyStrategy',
-			'datacenter1': 3
+			'my-datacenter-1': 1
 		};`, keyspace)
 
 	if err := tempSession.Query(createKeyspace).Exec(); err != nil {
@@ -59,7 +59,6 @@ func NewCassandraClient(hosts []string, keyspace string) (*CassandraClient, erro
 
 	return client, nil
 }
-
 
 func (c *CassandraClient) initSchema() error {
 	createTable := `

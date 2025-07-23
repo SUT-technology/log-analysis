@@ -31,7 +31,6 @@ func NewCockroachDBClient(dsn string) (*CockroachDBClient, error) {
 	return c, nil
 }
 
-
 func (c *CockroachDBClient) InitCockroachSchema() error {
 	// 1. Create users first
 	_, err := c.db.Exec(`
@@ -80,7 +79,7 @@ func (c *CockroachDBClient) InsertTestProject(ownerID string) error {
 	`
 
 	name := "Test Project"
-	apiKey := "test-api-key-123"
+	apiKey := "test-api-key-1274s1a"
 	searchableKeys := []string{"key1", "key2", "key3"}
 	ttlSeconds := 3600
 
@@ -98,7 +97,7 @@ func (c *CockroachDBClient) InsertTestUser() (string, error) {
 	RETURNING id;
 	`
 
-	username := "mahdi"
+	username := "mahdi452"
 	password := "123456"
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 
