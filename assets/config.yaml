@@ -10,6 +10,7 @@ kafka:
 cassandra:
   hosts:
     - "cassandra"
+  keyspace: "logks"
 
 clickhouse:
   addr: "clickhouse:9000"

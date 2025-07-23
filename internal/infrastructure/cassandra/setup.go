@@ -29,8 +29,8 @@ func NewCassandraClient(hosts []string, keyspace string) (*CassandraClient, erro
 	// ایجاد keyspace
 	createKeyspace := fmt.Sprintf(`
 		CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {
-			'class': 'NetworkTopologyStrategy',
-			'datacenter1': 3
+			'class': 'SimpleStrategy',
+			'replication_factor': 1
 		};`, keyspace)
 
 	if err := tempSession.Query(createKeyspace).Exec(); err != nil {
