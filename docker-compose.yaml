@@ -7,9 +7,9 @@ services:
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
 
-  kafka:
+  kafka1:
     image: confluentinc/cp-kafka:7.5.0
-    container_name: kafka
+    container_name: kafka1
     depends_on:
       - zookeeper
     ports:
@@ -18,16 +18,91 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
 
-  cassandra:
+  kafka2:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka2
+    depends_on:
+      - zookeeper
+    ports:
+      - "9093:9093"
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+
+  kafka3:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka3
+    depends_on:
+      - zookeeper
+    ports:
+      - "9094:9094"
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka3:9094
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+
+  cassandra1:
     image: cassandra:4.0
-    container_name: cassandra
+    container_name: cassandra1
     environment:
       CASSANDRA_CLUSTER_NAME: "LogCluster"
+      CASSANDRA_SEEDS: "cassandra1"
+      MAX_HEAP_SIZE: "1G"
+      HEAP_NEWSIZE: "200M"
     ports:
-      - "9042:9042"
+      - "9042:9042" # Client port
+      - "7001:7000" # Internal communication
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 512m
+    #       cpus: "0.5"
+
+  cassandra2:
+    image: cassandra:4.0
+    container_name: cassandra2
+    environment:
+      CASSANDRA_CLUSTER_NAME: "LogCluster"
+      CASSANDRA_SEEDS: "cassandra1"
+      MAX_HEAP_SIZE: "1G"
+      HEAP_NEWSIZE: "200M"
+    depends_on:
+      - cassandra1
+    ports:
+      - "9043:9042" # Client port
+      - "7002:7000" # Internal communication
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 512m
+    #       cpus: "0.5"
+
+  cassandra3:
+    image: cassandra:4.0
+    container_name: cassandra3
+    environment:
+      CASSANDRA_CLUSTER_NAME: "LogCluster"
+      CASSANDRA_SEEDS: "cassandra1"
+      MAX_HEAP_SIZE: "1g"
+      HEAP_NEWSIZE: "200M"
+    depends_on:
+      - cassandra1
+    ports:
+      - "9044:9042" # Client port
+      - "7003:7000" # Internal communication
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 512m
+    #       cpus: "0.5"
 
   clickhouse:
     image: clickhouse/clickhouse-server:23.8
@@ -72,8 +147,12 @@ services:
       dockerfile: Dockerfile
     container_name: log-api
     depends_on:
-      - kafka
-      - cassandra
+      - kafka1
+      - kafka2
+      - kafka3
+      - cassandra1
+      - cassandra2
+      - cassandra3
       - clickhouse
       - cockroach1
       - cockroach2
