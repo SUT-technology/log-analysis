@@ -35,7 +35,7 @@ func New(producer *kafka.KafkaClient,
 func (s LogSrvc) SendLog(ctx context.Context, req dto.SendLogRequest) (dto.SendLogResponse, error) {
 	project, err := s.cockroachdb.GetProject(ctx, req.ProjectID)
 	if err != nil {
-		fmt.Errorf("error debug: %w",err)
+		fmt.Errorf("error debug: %w", err)
 		return dto.SendLogResponse{}, err
 	}
 
@@ -68,15 +68,15 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 	offset := filters.Page * pageSize
 
 	// Build WHERE conditions dynamically
-	conditions := []string{"project_id = {project_id:String}"}
+	conditions := []string{fmt.Sprintf("project_id = '%s'", filters.ProjectID)}
 
 	if filters.EventName != "" {
 		conditions = append(conditions, "event_name = {event_name:String}")
 		// params["event_name"] = filters.EventName
 	}
 
-	for key := range filters.SearchableKeys {
-		conditions = append(conditions, fmt.Sprintf("payload['%s'] = {%s:String}", key, key))
+	for key, value := range filters.SearchableKeys {
+		conditions = append(conditions, fmt.Sprintf("payload['%s'] = {%s:String}", key, value))
 		// params[key] = value
 	}
 
@@ -88,14 +88,18 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 	query := fmt.Sprintf(`
 		SELECT 
 			event_name,
-			max(timestamp) AS last_occur,
+			max(event_time) AS last_occur,
 			count(*) AS total_count
-		FROM events
+		FROM events_clickhouse
 		%s
 		GROUP BY event_name
 		ORDER BY last_occur DESC
 		LIMIT %d OFFSET %d
 	`, whereClause, pageSize, offset)
+
+	fmt.Println("query:; ", query)
+	fmt.Println("params:; ", conditions)
+	fmt.Println("searchs: ", filters.SearchableKeys)
 
 	// Run query
 	rows, err := s.clickhouse.DB.QueryContext(ctx, query)
@@ -115,17 +119,16 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 
 	return dto.ListEventsResponse{
 		ProjectID: filters.ProjectID,
-		Data: events,
-		Filters: filters,
+		Data:      events,
+		Filters:   filters,
 	}, nil
 }
-
 
 // DetailEvent جزئیات ایونت فعلی و ناوبری را بازمی‌گرداند
 func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto.DetailEventsResponse, error) {
 
 	// Build WHERE conditions dynamically
-	conditions := []string{fmt.Sprintf("project_id = {%s:String}",filters.ProjectID)}
+	conditions := []string{fmt.Sprintf("project_id = {%s:String}", filters.ProjectID)}
 
 	if filters.EventName != "" {
 		conditions = append(conditions, "event_name = {event_name:String}")
@@ -185,7 +188,7 @@ func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto
 
 	return dto.DetailEventsResponse{
 		ProjectID: filters.ProjectID,
-		Filters: filters,
-		Current: event,
+		Filters:   filters,
+		Current:   event,
 	}, nil
 }

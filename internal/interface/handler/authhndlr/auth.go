@@ -16,7 +16,7 @@ type AuthHndlr struct {
 func New(g *echo.Group, srvc application.Services) *AuthHndlr {
 	handler := &AuthHndlr{Services: srvc}
 
-	g.GET("/login", handler.Login)
+	g.POST("/login", handler.Login)
 
 	return handler
 }

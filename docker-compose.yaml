@@ -28,6 +28,8 @@ services:
       CASSANDRA_CLUSTER_NAME: "LogCluster"
     ports:
       - "9042:9042"
+    volumes:
+      - ./cassandra-data:/var/lib/cassandra
 
   clickhouse:
     image: clickhouse/clickhouse-server:23.8
@@ -86,3 +88,4 @@ volumes:
   cockroach-data1:
   cockroach-data2:
   cockroach-data3:
+  cassandra-data:

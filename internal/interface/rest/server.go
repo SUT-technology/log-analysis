@@ -50,6 +50,8 @@ func NewServer(srvc application.Services, cfg config.Config) *Server {
 
 	e.Use(middleware...)
 
+	e.Use(m.corsMiddleware())
+
 	register(e, srvc, m)
 
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
