@@ -61,9 +61,6 @@ func (h *LogHndlr) ListEvents(c echo.Context) error {
 		}
 	}
 
-	// Now filters.SearchableKeys is populated correctly from your JS
-
-	// Continue with your logic
 	eventsResponse, err := h.Services.LogSrvc.ListEvents(c.Request().Context(), filters)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})

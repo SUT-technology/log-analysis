@@ -1,0 +1,81 @@
+project_id,scenario,searchable_keys,page,status_code,duration_ms,total_count,returned_items
+a63d3d4f-656f-49f6-be2c-7cab588092f7,no_filter,{},1,200,14.2,4,4
+a63d3d4f-656f-49f6-be2c-7cab588092f7,no_filter,{},2,200,9.28,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,no_filter,{},3,200,9.43,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,no_filter,{},4,200,10.72,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,no_filter,{},5,200,9.58,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,by_event,"{""event_name"": ""login""}",1,200,10.28,1,1
+a63d3d4f-656f-49f6-be2c-7cab588092f7,by_event,"{""event_name"": ""login""}",2,200,18.91,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,by_event,"{""event_name"": ""login""}",3,200,11.65,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,by_event,"{""event_name"": ""login""}",4,200,10.53,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,by_event,"{""event_name"": ""login""}",5,200,15.4,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,by_key,"{""searchable_keys[k1]"": ""v1_0""}",1,200,19.6,4,4
+a63d3d4f-656f-49f6-be2c-7cab588092f7,by_key,"{""searchable_keys[k1]"": ""v1_0""}",2,200,21.53,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,by_key,"{""searchable_keys[k1]"": ""v1_0""}",3,200,16.02,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,by_key,"{""searchable_keys[k1]"": ""v1_0""}",4,200,16.29,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,by_key,"{""searchable_keys[k1]"": ""v1_0""}",5,200,16.15,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,combo,"{""searchable_keys[k2]"": ""v2_0""}",1,200,14.52,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,combo,"{""searchable_keys[k2]"": ""v2_0""}",2,200,11.02,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,combo,"{""searchable_keys[k2]"": ""v2_0""}",3,200,11.14,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,combo,"{""searchable_keys[k2]"": ""v2_0""}",4,200,12.53,0,0
+a63d3d4f-656f-49f6-be2c-7cab588092f7,combo,"{""searchable_keys[k2]"": ""v2_0""}",5,200,10.58,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,no_filter,{},1,200,9.82,4,4
+2000cc4f-64b3-4760-806f-fdc2910f338a,no_filter,{},2,200,9.77,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,no_filter,{},3,200,10.62,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,no_filter,{},4,200,11.22,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,no_filter,{},5,200,11.16,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,by_event,"{""event_name"": ""login""}",1,200,11.19,1,1
+2000cc4f-64b3-4760-806f-fdc2910f338a,by_event,"{""event_name"": ""login""}",2,200,15.16,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,by_event,"{""event_name"": ""login""}",3,200,15.14,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,by_event,"{""event_name"": ""login""}",4,200,13.01,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,by_event,"{""event_name"": ""login""}",5,200,12.04,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,by_key,"{""searchable_keys[k1]"": ""v1_0""}",1,200,13.4,4,4
+2000cc4f-64b3-4760-806f-fdc2910f338a,by_key,"{""searchable_keys[k1]"": ""v1_0""}",2,200,15.1,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,by_key,"{""searchable_keys[k1]"": ""v1_0""}",3,200,14.93,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,by_key,"{""searchable_keys[k1]"": ""v1_0""}",4,200,14.1,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,by_key,"{""searchable_keys[k1]"": ""v1_0""}",5,200,13.4,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,combo,"{""searchable_keys[k2]"": ""v2_0""}",1,200,12.16,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,combo,"{""searchable_keys[k2]"": ""v2_0""}",2,200,10.35,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,combo,"{""searchable_keys[k2]"": ""v2_0""}",3,200,12.97,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,combo,"{""searchable_keys[k2]"": ""v2_0""}",4,200,10.79,0,0
+2000cc4f-64b3-4760-806f-fdc2910f338a,combo,"{""searchable_keys[k2]"": ""v2_0""}",5,200,13.85,0,0
+342a666f-2873-4355-963c-88dd72081c4a,no_filter,{},1,200,12.38,4,4
+342a666f-2873-4355-963c-88dd72081c4a,no_filter,{},2,200,13.16,0,0
+342a666f-2873-4355-963c-88dd72081c4a,no_filter,{},3,200,10.58,0,0
+342a666f-2873-4355-963c-88dd72081c4a,no_filter,{},4,200,11.8,0,0
+342a666f-2873-4355-963c-88dd72081c4a,no_filter,{},5,200,10.19,0,0
+342a666f-2873-4355-963c-88dd72081c4a,by_event,"{""event_name"": ""login""}",1,200,10.46,1,1
+342a666f-2873-4355-963c-88dd72081c4a,by_event,"{""event_name"": ""login""}",2,200,11.25,0,0
+342a666f-2873-4355-963c-88dd72081c4a,by_event,"{""event_name"": ""login""}",3,200,11.9,0,0
+342a666f-2873-4355-963c-88dd72081c4a,by_event,"{""event_name"": ""login""}",4,200,14.75,0,0
+342a666f-2873-4355-963c-88dd72081c4a,by_event,"{""event_name"": ""login""}",5,200,10.71,0,0
+342a666f-2873-4355-963c-88dd72081c4a,by_key,"{""searchable_keys[k1]"": ""v1_0""}",1,200,12.65,4,4
+342a666f-2873-4355-963c-88dd72081c4a,by_key,"{""searchable_keys[k1]"": ""v1_0""}",2,200,13.66,0,0
+342a666f-2873-4355-963c-88dd72081c4a,by_key,"{""searchable_keys[k1]"": ""v1_0""}",3,200,13.2,0,0
+342a666f-2873-4355-963c-88dd72081c4a,by_key,"{""searchable_keys[k1]"": ""v1_0""}",4,200,15.37,0,0
+342a666f-2873-4355-963c-88dd72081c4a,by_key,"{""searchable_keys[k1]"": ""v1_0""}",5,200,16.16,0,0
+342a666f-2873-4355-963c-88dd72081c4a,combo,"{""searchable_keys[k2]"": ""v2_0""}",1,200,27.4,0,0
+342a666f-2873-4355-963c-88dd72081c4a,combo,"{""searchable_keys[k2]"": ""v2_0""}",2,200,11.95,0,0
+342a666f-2873-4355-963c-88dd72081c4a,combo,"{""searchable_keys[k2]"": ""v2_0""}",3,200,13.23,0,0
+342a666f-2873-4355-963c-88dd72081c4a,combo,"{""searchable_keys[k2]"": ""v2_0""}",4,200,14.92,0,0
+342a666f-2873-4355-963c-88dd72081c4a,combo,"{""searchable_keys[k2]"": ""v2_0""}",5,200,14.6,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,no_filter,{},1,200,9.85,4,4
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,no_filter,{},2,200,9.21,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,no_filter,{},3,200,9.12,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,no_filter,{},4,200,9.35,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,no_filter,{},5,200,9.22,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,by_event,"{""event_name"": ""login""}",1,200,10.17,1,1
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,by_event,"{""event_name"": ""login""}",2,200,9.72,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,by_event,"{""event_name"": ""login""}",3,200,10.49,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,by_event,"{""event_name"": ""login""}",4,200,9.05,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,by_event,"{""event_name"": ""login""}",5,200,9.9,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,by_key,"{""searchable_keys[k1]"": ""v1_0""}",1,200,9.66,4,4
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,by_key,"{""searchable_keys[k1]"": ""v1_0""}",2,200,11.73,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,by_key,"{""searchable_keys[k1]"": ""v1_0""}",3,200,10.97,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,by_key,"{""searchable_keys[k1]"": ""v1_0""}",4,200,11.21,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,by_key,"{""searchable_keys[k1]"": ""v1_0""}",5,200,10.69,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,combo,"{""searchable_keys[k2]"": ""v2_0""}",1,200,10.02,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,combo,"{""searchable_keys[k2]"": ""v2_0""}",2,200,9.29,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,combo,"{""searchable_keys[k2]"": ""v2_0""}",3,200,9.92,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,combo,"{""searchable_keys[k2]"": ""v2_0""}",4,200,9.96,0,0
+a7ad2ae3-9b29-4e05-b3d0-ca224d746051,combo,"{""searchable_keys[k2]"": ""v2_0""}",5,200,10.31,0,0
