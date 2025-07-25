@@ -25,9 +25,8 @@ func (c *ClickHouseSQLClient) InsertEvent(ctx context.Context, logMessage models
 	if err != nil {
 		return fmt.Errorf("tx begin error: %w", err)
 	}
-	defer tx.Rollback() // safe in case of failure
+	defer tx.Rollback() 
 
-	// Prepare statement with nested fields
 	stmt, err := tx.PrepareContext(ctx, `
 		INSERT INTO events_clickhouse 
 		(project_id, event_name, event_time, inserted_time, payload.key, payload.value) 
@@ -49,8 +48,7 @@ func (c *ClickHouseSQLClient) InsertEvent(ctx context.Context, logMessage models
 	if err != nil {
 		return fmt.Errorf("exec error: %w", err)
 	}
-
-	// Commit transaction
+	
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("commit error: %w", err)
 	}
@@ -93,7 +91,6 @@ func (c *ClickHouseSQLClient) GetPreviousEventTime(ctx context.Context, filters 
 
 	for key := range filters.SearchableKeys {
 		conditions = append(conditions, fmt.Sprintf("payload['%s'] = '%s'", key, key))
-		// params[key] = value
 	}
 
 	whereClause := ""

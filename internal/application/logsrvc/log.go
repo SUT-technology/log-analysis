@@ -107,92 +107,17 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 	}, nil
 }
 
-
-// DetailEvent جزئیات ایونت فعلی و ناوبری را بازمی‌گرداند
-// func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto.DetailEventsResponse, error) {
-
-// 	// Build WHERE conditions dynamically
-// 	conditions := []string{fmt.Sprintf("project_id = '%s'",filters.ProjectID)}
-
-// 	if filters.EventName != "" {
-// 		conditions = append(conditions, fmt.Sprintf("event_name = '%s'",filters.EventName))
-// 	}
-
-// 	for key := range filters.SearchableKeys {
-// 		conditions = append(conditions, fmt.Sprintf("payload['%s'] = '%s'", key, key))
-// 		// params[key] = value
-// 	}
-
-// 	whereClause := ""
-// 	if len(conditions) > 0 {
-// 		whereClause = "WHERE " + strings.Join(conditions, " AND ")
-// 	}
-
-// 	var query string
-
-// 	if filters.Position == dto.Absolute {
-// 		query = fmt.Sprintf(`SELECT * FROM events_clickhouse %s AND event_time = '%s'`, whereClause, filters.EventTime.Format("2006-01-02 15:04:05"))
-// 	} else if filters.Position == dto.Next {
-// 		query = fmt.Sprintf(`SELECT * FROM events_clickhouse %s AND event_time > '%s' ORDER BY event_time ASC LIMIT 1`, whereClause, filters.EventTime.Format("2006-01-02 15:04:05"))
-// 	} else if filters.Position == dto.Previous {
-// 		query = fmt.Sprintf(`SELECT * FROM events_clickhouse %s AND event_time < '%s' ORDER BY event_time DESC LIMIT 1`, whereClause, filters.EventTime.Format("2006-01-02 15:04:05"))
-// 	}
-
-// 	fmt.Printf("[debug] query: %s",query)
-
-// 	// Run query
-// 	row, err := s.clickhouse.DB.QueryContext(ctx, query)
-// 	if err != nil {
-// 		return dto.DetailEventsResponse{}, err
-// 	}
-// 	defer row.Close()
-
-// 	var event models.EventRaw
-// 	var payloadKeys []string
-// 	var PayloadValues []string
-// 	if row.Next() {
-// 		if err := row.Scan(&event.ProjectID,&event.EventName, &event.EventTime, &event.InsertedTime, &payloadKeys,&PayloadValues); err != nil {
-// 			return dto.DetailEventsResponse{}, err
-// 		}
-// 	}
-// 	var payload = make(map[string]string)
-// 	for i := 0; i < len(payloadKeys); i++ {
-// 		payload[payloadKeys[i]] = PayloadValues[i]
-// 	}
-
-// 	return dto.DetailEventsResponse{
-// 		ProjectID: filters.ProjectID,
-// 		Filters: filters,
-// 		Current: dto.EventDetail{
-// 			EventName: event.EventName,
-// 			EventTime: event.EventTime,
-// 			InsertedTime: event.InsertedTime,
-// 			Payload: payload,
-// 		},
-// 	}, nil
-// }
-
 func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto.DetailEventsResponse, error) {
-	// 1. Fetch main event from Cassandra
+	
 	event, err := s.cassandra.GetEventByTime(ctx, filters.ProjectID, filters.EventTime, filters.EventName)
 	if err != nil {
 		log.Error("error getting event by time from cassandra: ",err)
 		return dto.DetailEventsResponse{}, err
 	}
 
-	// 2. Fetch next event_time from ClickHouse
 	nextTime := s.clickhouse.GetNextEventTime(ctx, filters)
-	// if err != nil {
-	// 	log.Error("error getting next event by time from clickhouse: ",err)
-	// 	return dto.DetailEventsResponse{}, err
-	// }
 
-	// 3. Fetch previous event_time from ClickHouse
 	prevTime := s.clickhouse.GetPreviousEventTime(ctx, filters)
-	// if err != nil {
-	// 	log.Error("error getting previous event by time from clickhouse: ",err)
-	// 	return dto.DetailEventsResponse{}, err
-	// }
 
 	return dto.DetailEventsResponse{
 		ProjectID: filters.ProjectID,
