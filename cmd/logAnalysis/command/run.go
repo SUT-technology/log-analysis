@@ -28,6 +28,8 @@ func Run() error {
 		return fmt.Errorf("reading config: %w", err)
 	}
 
+	fmt.Println("start project")
+
 	// راه‌اندازی CockroachDB
 	crdb, err := cockroachdb.NewCockroachDBClient(cfg.Cockroach.DSN)
 	if err != nil {

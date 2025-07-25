@@ -35,7 +35,7 @@ func New(producer *kafka.KafkaClient,
 func (s LogSrvc) SendLog(ctx context.Context, req dto.SendLogRequest) (dto.SendLogResponse, error) {
 	project, err := s.cockroachdb.GetProject(ctx, req.ProjectID)
 	if err != nil {
-		fmt.Errorf("error debug: %w",err)
+		fmt.Errorf("error debug: %w", err)
 		return dto.SendLogResponse{}, err
 	}
 
@@ -70,8 +70,10 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 	fmt.Printf("[debug] projectID: %s",filters.ProjectID)
 
 	whereClause := fmt.Sprintf("WHERE project_id = '%s'",filters.ProjectID)
+	whereClause := fmt.Sprintf("WHERE project_id = '%s'",filters.ProjectID)
 
 	if filters.EventName != "" {
+		whereClause += fmt.Sprintf(" AND event_name = '%s'",filters.EventName)
 		whereClause += fmt.Sprintf(" AND event_name = '%s'",filters.EventName)
 	}
 
@@ -82,11 +84,15 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 	}
 
 	query := fmt.Sprintf(`SELECT event_name, max(event_time) AS last_occur, count(*) AS total_count FROM events_clickhouse %v GROUP BY event_name ORDER BY last_occur DESC LIMIT %d OFFSET %d`, whereClause, pageSize, offset)
+	query := fmt.Sprintf(`SELECT event_name, max(event_time) AS last_occur, count(*) AS total_count FROM events_clickhouse %v GROUP BY event_name ORDER BY last_occur DESC LIMIT %d OFFSET %d`, whereClause, pageSize, offset)
+
+	fmt.Printf("[debug] query: %s",query)
 
 	fmt.Printf("[debug] query: %s",query)
 
 	rows, err := s.clickhouse.DB.QueryContext(ctx, query)
 	if err != nil {
+		log.Error("error in getting rows:",err)
 		log.Error("error in getting rows:",err)
 		return dto.ListEventsResponse{}, err
 	}
@@ -97,6 +103,7 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 		var e dto.EventSummary
 		if err := rows.Scan(&e.EventName, &e.LastOccur, &e.TotalCount); err != nil {
 			log.Error("error in getting scanning:",err)
+			log.Error("error in getting scanning:",err)
 			return dto.ListEventsResponse{}, err
 		}
 		events = append(events, e)
@@ -104,18 +111,25 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 
 	return dto.ListEventsResponse{
 		ProjectID: filters.ProjectID,
-		Data: events,
-		Filters: filters,
+		Data:      events,
+		Filters:   filters,
 	}, nil
 }
 
 func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto.DetailEventsResponse, error) {
 	
 	event, err := s.cassandra.GetEventByTime(ctx, filters.ProjectID, filters.EventTime, filters.EventName)
+	
+	event, err := s.cassandra.GetEventByTime(ctx, filters.ProjectID, filters.EventTime, filters.EventName)
 	if err != nil {
+		log.Error("error getting event by time from cassandra: ",err)
 		log.Error("error getting event by time from cassandra: ",err)
 		return dto.DetailEventsResponse{}, err
 	}
+
+	nextTime := s.clickhouse.GetNextEventTime(ctx, filters)
+
+	prevTime := s.clickhouse.GetPreviousEventTime(ctx, filters)
 
 	nextTime := s.clickhouse.GetNextEventTime(ctx, filters)
 
@@ -132,6 +146,16 @@ func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto
 		},
 		NextEventTime:     nextTime,
 		PreviousEventTime: prevTime,
+		Filters:   filters,
+		Current: dto.EventDetail{
+			EventName:    event.EventName,
+			EventTime:    event.EventTime,
+			InsertedTime: event.InsertedTime,
+			Payload:      event.Payload,
+		},
+		NextEventTime:     nextTime,
+		PreviousEventTime: prevTime,
 	}, nil
 }
+
 

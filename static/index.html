@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,7 +14,13 @@
       --accent: #03dac6;
       --error: #cf6679;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: Arial, sans-serif;
       background: var(--bg);
@@ -22,6 +29,7 @@
       display: flex;
       flex-direction: column;
     }
+
     header {
       background: var(--surface);
       padding: 1rem 2rem;
@@ -29,22 +37,103 @@
       justify-content: space-between;
       align-items: center;
     }
-    header h1 { color: var(--primary); }
-    main { flex: 1; padding: 2rem; }
-    .hidden { display: none; }
-    form, .panel { background: var(--surface); padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-    input, select, button { width: 100%; padding: 0.75rem; margin-top: 0.5rem; background: #2a2a2a; border: 1px solid #333; border-radius: 4px; color: var(--text); }
-    button { background: var(--primary); color: #121212; font-weight: bold; cursor: pointer; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { text-align: left; padding: 0.75rem; border-bottom: 1px solid #333; }
-    th { background: #272727; }
-    tr:hover { background: #2a2a2a; cursor: pointer; }
-    .filters { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .filters > div { flex: 1; }
-    nav.breadcrumbs { margin-bottom: 1rem; font-size: 0.9rem; }
-    nav.breadcrumbs span { color: var(--accent); cursor: pointer; }
+
+    header h1 {
+      color: var(--primary);
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    form,
+    .panel {
+      background: var(--surface);
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      background: #2a2a2a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: var(--text);
+    }
+
+    button {
+      background: var(--primary);
+      color: #121212;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 0.75rem;
+      border-bottom: 1px solid #333;
+    }
+
+    th {
+      background: #272727;
+    }
+
+    tr:hover {
+      background: #2a2a2a;
+      cursor: pointer;
+    }
+
+    .filters {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .filters>div {
+      flex: 1;
+    }
+
+    nav.breadcrumbs {
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    nav.breadcrumbs span {
+      color: var(--accent);
+      cursor: pointer;
+    }
+
+    textarea {
+      width: 100%;
+      background: #2a2a2a;
+      border: 1px solid #333;
+      color: var(--text);
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      border-radius: 4px;
+      resize: vertical;
+    }
   </style>
 </head>
+
 <body>
   <header>
     <h1>Log Dashboard</h1>
@@ -65,8 +154,36 @@
     <!-- Projects List -->
     <div id="view-projects" class="panel hidden">
       <h2>Your Projects</h2>
+      <button id="btn-sendlog">Send a Log</button>
       <ul id="project-list"></ul>
     </div>
+
+    <!-- Send Log Panel -->
+    <div id="view-sendlog" class="panel hidden">
+      <nav class="breadcrumbs"><span id="back-projects-2">← Projects</span> / <strong>Send Log</strong></nav>
+      <h2>Send Log</h2>
+      <form id="form-sendlog">
+        <label>Project
+          <select id="sendlog-project" required></select>
+        </label>
+        <label>API Key
+          <input type="text" id="sendlog-apikey" required />
+        </label>
+        <label>Event Name
+          <input type="text" id="sendlog-name" required />
+        </label>
+        <label>Timestamp
+          <input type="datetime-local" id="sendlog-timestamp" />
+        </label>
+        <label>Payload (Key=Value, one per line)
+          <textarea id="sendlog-payload" rows="6" required></textarea>
+        </label>
+        <button type="submit">Send Log</button>
+      </form>
+      <p id="sendlog-msg" style="margin-top:1rem;"></p>
+    </div>
+
+
 
     <!-- Events Summary -->
     <div id="view-summary" class="panel hidden">
@@ -77,7 +194,13 @@
       </div>
       <button id="btn-refresh">Refresh</button>
       <table>
-        <thead><tr><th>Name</th><th>Last Occurred</th><th>Total</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Last Occurred</th>
+            <th>Total</th>
+          </tr>
+        </thead>
         <tbody id="summary-body"></tbody>
       </table>
     </div>
@@ -94,89 +217,168 @@
     </div>
   </main>
   <script>
-    const API_BASE = 'localhost:8000'; // set your API base URL
-    let token = null;   
+    const API_BASE = 'http://localhost:8000';
+    function getCookie(name) {
+      const cookies = document.cookie.split("; ");
+      for (let c of cookies) {
+        const [key, value] = c.split("=");
+        if (key === name) return value;
+      }
+      return null;
+    }
+    let token = getCookie("api_token");
     let currentProject = null;
-    let appliedFilters = {};
 
     // Helper: show view
     function showView(id) {
-      ['view-login','view-projects','view-summary','view-detail'].forEach(v=> document.getElementById(v).classList.add('hidden'));
+      ['view-login', 'view-projects', 'view-summary', 'view-detail'].forEach(v => document.getElementById(v).classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
     }
-
     // Login
     document.getElementById('form-login').addEventListener('submit', async e => {
       e.preventDefault();
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
       try {
-        const res = await fetch(API_BASE + '/auth/login', {
-          method:'POST', headers:{'Content-Type':'application/json'},
+        console.log("here1")
+        const api_url = API_BASE + '/api/auth/login';
+        console.log(api_url)
+        const res = await fetch(api_url, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
         const data = await res.json();
+        console.log(data);
         if (data.token) {
           token = data.token;
           document.getElementById('btn-logout').classList.remove('hidden');
+          document.cookie = `api_token=${token}; path=/; max-age=3600`;
           loadProjects();
           showView('view-projects');
-        } else throw new Error(data.message||'Login failed');
-      } catch(err) { document.getElementById('login-error').textContent = err.message; }
+        } else throw new Error(data.message || 'Login failed');
+      } catch (err) { document.getElementById('login-error').textContent = err.message; }
     });
-
-    document.getElementById('btn-logout').addEventListener('click', () => { token=null; showView('view-login'); });
+    if (token) {
+      document.getElementById('btn-logout').classList.remove('hidden');
+      loadProjects();
+      showView('view-projects');
+    }
+    document.getElementById('btn-logout').addEventListener('click', () => { token = null; showView('view-login'); });
 
     // Load projects
     async function loadProjects() {
-      const res = await fetch(API_BASE + '/api/projects', { headers:{ 'Authorization':'Bearer '+token }});
+      const res = await fetch(API_BASE + '/api/projects', { headers: { 'Authorization': 'Bearer ' + token } });
       const list = await res.json();
-      const ul = document.getElementById('project-list'); ul.innerHTML='';
-      list.forEach(p=>{
+      const ul = document.getElementById('project-list'); ul.innerHTML = '';
+      list.projects.forEach(p => {
         const li = document.createElement('li');
-        li.textContent = p.name;
-        li.addEventListener('click', ()=> openSummary(p));
+        li.textContent = p.project_name;
+        li.addEventListener('click', () => openSummary(p));
         ul.append(li);
       });
     }
 
+    document.getElementById('btn-sendlog').addEventListener('click', () => {
+      loadSendLogProjects();
+      showView('view-sendlog');
+    });
+
+    document.getElementById('back-projects-2').addEventListener('click', () => {
+      showView('view-projects');
+    });
+
+    async function loadSendLogProjects() {
+      const res = await fetch(API_BASE + '/api/projects', { headers: { 'Authorization': 'Bearer ' + token } });
+      const data = await res.json();
+      const select = document.getElementById('sendlog-project');
+      select.innerHTML = '';
+      data.projects.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.project_id;
+        opt.textContent = p.project_name;
+        select.append(opt);
+      });
+    }
+
+    document.getElementById('form-sendlog').addEventListener('submit', async e => {
+      e.preventDefault();
+      const msgBox = document.getElementById('sendlog-msg');
+      msgBox.textContent = '';
+      try {
+        const project_id = document.getElementById('sendlog-project').value;
+        const api_key = document.getElementById('sendlog-apikey').value;
+        const name = document.getElementById('sendlog-name').value;
+        const timestampInput = document.getElementById('sendlog-timestamp').value;
+        const timestamp = timestampInput ? new Date(timestampInput).toISOString() : new Date().toISOString();
+        const rawPayload = document.getElementById('sendlog-payload').value;
+        const payload = {};
+        rawPayload.split('\n').forEach(line => {
+          const [k, v] = line.split('=');
+          if (k && v !== undefined) payload[k.trim()] = v.trim();
+        });
+
+        const res = await fetch(API_BASE + '/api/logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+           },
+          body: JSON.stringify({ project_id, api_key, name, timestamp, payload })
+        });
+        if (res.ok) {
+          msgBox.style.color = 'var(--accent)';
+          msgBox.textContent = '✅ Log sent successfully';
+        } else {
+          throw new Error(data.message || 'Unknown error');
+        }
+      } catch (err) {
+        msgBox.style.color = 'var(--error)';
+        msgBox.textContent = '❌ ' + err.message;
+      }
+    });
+
+
     // Open summary
     function openSummary(project) {
       currentProject = project;
-      appliedFilters = { project_id: project.id };
       renderFilters(project.searchable_keys);
-      fetchSummary();
+      fetchSummary(project);
       showView('view-summary');
     }
 
-    function renderFilters(keys){
-      const container = document.getElementById('filter-container'); container.innerHTML='';
-      keys.forEach(key=>{
-        const div=document.createElement('div');
+    function renderFilters(keys) {
+      const container = document.getElementById('filter-container'); container.innerHTML = '';
+      keys.forEach(key => {
+        const div = document.createElement('div');
         div.innerHTML = `<label>${key}<input data-key="${key}" /></label>`;
         container.append(div);
       });
     }
 
-    async function fetchSummary(){
-      const qs = new URLSearchParams();
-      Object.entries(appliedFilters).forEach(([k,v])=> qs.append(k,v));
-      document.querySelectorAll('#filter-container input').forEach(inp=>{
-        if (inp.value) qs.append(`searchable_keys[${inp.dataset.key}]`, inp.value);
+    async function fetchSummary() {
+      const kv = new Map();
+      document.querySelectorAll('#filter-container input').forEach(inp => {
+        console.log(inp.value)
+        if (inp.value) kv.set(`${inp.dataset.key}`,inp.value) 
       });
-      const res = await fetch(API_BASE + '/api/events?'+qs.toString(), { headers:{ 'Authorization':'Bearer '+token }});
+      console.log(JSON.stringify({project_id:currentProject.project_id,searchable_keys:Object.fromEntries(kv)}))
+      const res = await fetch(API_BASE + '/api/logs/summery', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token } ,
+        body : JSON.stringify({project_id:currentProject.project_id, searchable_keys:Object.fromEntries(kv)})
+      });
       const data = await res.json();
-      const tbody = document.getElementById('summary-body'); tbody.innerHTML='';
-      data.data.forEach(row=>{
-        const tr=document.createElement('tr');
+      console.log(data)
+      const tbody = document.getElementById('summary-body'); tbody.innerHTML = '';
+      data.data.forEach(row => {
+        const tr = document.createElement('tr');
         tr.innerHTML = `<td>${row.event_name}</td><td>${new Date(row.last_occur).toLocaleString()}</td><td>${row.total_count}</td>`;
-        tr.addEventListener('click', ()=> openDetail(row.event_name));
+        tr.addEventListener('click', () => openDetail(row.event_name));
         tbody.append(tr);
       });
     }
     document.getElementById('btn-refresh').addEventListener('click', fetchSummary);
 
-    function openDetail(name){
+    function openDetail(name) {
       appliedFilters.event_name = name;
       appliedFilters.position = '';
       loadDetail();
@@ -184,21 +386,22 @@
     }
 
     async function loadDetail() {
-      const qs=new URLSearchParams();
-      Object.entries(appliedFilters).forEach(([k,v])=> qs.append(k,v));
-      const res = await fetch(API_BASE + `/api/events/${encodeURIComponent(appliedFilters.event_name)}?`+qs.toString(), { headers:{ 'Authorization':'Bearer '+token }});
-      const d=await res.json();
-      const info=document.getElementById('detail-info'); info.innerHTML='';
-      const ev=d.current_event;
-      for(const [k,v] of Object.entries(ev.payload)){ info.innerHTML += `<p><strong>${k}:</strong> ${v}</p>`; }
+      const qs = new URLSearchParams();
+      Object.entries(appliedFilters).forEach(([k, v]) => qs.append(k, v));
+      const res = await fetch(API_BASE + `/api/logs/${encodeURIComponent(appliedFilters.event_name)}?` + qs.toString(), { headers: { 'Authorization': 'Bearer ' + token } });
+      const d = await res.json();
+      const info = document.getElementById('detail-info'); info.innerHTML = '';
+      const ev = d.current_event;
+      for (const [k, v] of Object.entries(ev.payload)) { info.innerHTML += `<p><strong>${k}:</strong> ${v}</p>`; }
       info.innerHTML += `<p><strong>Occurred:</strong> ${new Date(ev.event_time).toLocaleString()}</p>`;
       info.innerHTML += `<p><strong>Inserted:</strong> ${new Date(ev.inserted_time).toLocaleString()}</p>`;
       // set positions
       appliedFilters.position = d.filters.position;
     }
 
-    document.getElementById('btn-prev').addEventListener('click', ()=> { /* set position to previous */ loadDetail(); });
-    document.getElementById('btn-next').addEventListener('click', ()=> { /* set position to next */ loadDetail(); });
+    document.getElementById('btn-prev').addEventListener('click', () => { /* set position to previous */ loadDetail(); });
+    document.getElementById('btn-next').addEventListener('click', () => { /* set position to next */ loadDetail(); });
   </script>
 </body>
+
 </html>
