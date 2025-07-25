@@ -16,15 +16,12 @@ type ClickHouseSQLClient struct {
 func (c *ClickHouseSQLClient) Query(ctx context.Context, param any, params map[string]interface{}) (any, any) {
 	panic("unimplemented")
 }
-
-// NewClickHouseSQLClient با DSN به ClickHouse وصل می‌شود.
-// مثال DSN: "tcp://clickhouse:9000?username=default&password=&database=default"
 func NewClickHouseSQLClient(dsn string) (*ClickHouseSQLClient, error) {
 	db, err := sql.Open("clickhouse", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("open clickhouse: %w", err)
 	}
-	// می‌توانی تنظیمات pool را هم اینجا اعمال کنی
+
 	db.SetMaxOpenConns(10)
 	db.SetConnMaxLifetime(time.Hour)
 	c := &ClickHouseSQLClient{DB: db}

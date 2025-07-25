@@ -9,7 +9,6 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-// InsertEvent writes raw event into Cassandra with TTL.
 func (c *CassandraClient) InsertEvent(ctx context.Context, evt *models.EventRaw, ttl int) error {
 	return c.session.Query(
 		`INSERT INTO events_raw (project_id, event_name, event_time, inserted_time, payload) VALUES (?, ?, ?, ?, ?) USING TTL ?`,
@@ -24,8 +23,8 @@ func (c *CassandraClient) GetEventByTime(ctx context.Context, projectID string, 
 
 	var event models.EventRaw
 	var id string
-			  
-	log.Info("[debug] query: ",query)
+
+	log.Info("[debug] query: ", query)
 	err := c.session.Query(query, projectID, eventTime).WithContext(ctx).Scan(
 		&id,
 		&event.EventName,
@@ -40,4 +39,3 @@ func (c *CassandraClient) GetEventByTime(ctx context.Context, projectID string, 
 	event.ProjectID = uuid.MustParse(id)
 	return &event, nil
 }
-

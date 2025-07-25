@@ -30,26 +30,22 @@ func Run() error {
 
 	fmt.Println("start project")
 
-	// راه‌اندازی CockroachDB
 	crdb, err := cockroachdb.NewCockroachDBClient(cfg.Cockroach.DSN)
 	if err != nil {
 		log.Fatalf("cockroach init: %v", err)
 	}
 	fmt.Println("Connected to CockroachDB")
 
-	// راه‌اندازی Kafka
 	producer := kafka.NewKafkaProducer(cfg.Kafka.Brokers, cfg.Kafka.Topic)
 	consumer := kafka.NewKafkaConsumer(cfg.Kafka.Brokers, cfg.Kafka.Topic, cfg.Kafka.GroupID)
 	fmt.Println("Kafka producer and consumer ready")
 
-	// راه‌اندازی Cassandra
 	cass, err := cassandra.NewCassandraClient(cfg.Cassandra.Hosts, cfg.Cassandra.Keyspace)
 	if err != nil {
 		log.Fatalf("cassandra init: %v", err)
 	}
 	fmt.Println("Connected to Cassandra")
 
-	// راه‌اندازی ClickHouse
 	chDsn := fmt.Sprintf(
 		"tcp://%s?username=%s&password=%s&database=%s",
 		cfg.ClickHouse.Addr,
@@ -66,7 +62,6 @@ func Run() error {
 
 	srvc := application.New(producer, consumer, cass, crdb, clickhouseClient, cfg)
 
-	// می‌توانید از این کلاینت‌ها در سرویستان استفاده کنید...
 	_ = crdb
 	_ = producer
 	_ = consumer

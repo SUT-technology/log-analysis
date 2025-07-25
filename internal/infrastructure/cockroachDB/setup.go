@@ -19,7 +19,6 @@ func NewCockroachDBClient(dsn string) (*CockroachDBClient, error) {
 	if err != nil {
 		return nil, err
 	}
-	// configure connection pool
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(25)
 	db.SetConnMaxLifetime(time.Hour)
@@ -32,7 +31,7 @@ func NewCockroachDBClient(dsn string) (*CockroachDBClient, error) {
 }
 
 func (c *CockroachDBClient) InitCockroachSchema() error {
-	// 1. Create users first
+
 	_, err := c.db.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -45,7 +44,6 @@ func (c *CockroachDBClient) InitCockroachSchema() error {
 		return fmt.Errorf("cockroach init (users): %w", err)
 	}
 
-	// 2. Then create projects
 	_, err = c.db.Exec(`
 		CREATE TABLE IF NOT EXISTS projects (
 			id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -62,10 +60,10 @@ func (c *CockroachDBClient) InitCockroachSchema() error {
 	}
 
 	// Insert a test project and user
-	_, err = c.InsertTestUser()
-	if err != nil {
-		return fmt.Errorf("insert test user: %w", err)
-	}
+	// _, err = c.InsertTestUser()
+	// if err != nil {
+	// 	return fmt.Errorf("insert test user: %w", err)
+	// }
 	// if err := c.InsertTestProject(ownerID); err != nil {
 	// 	return fmt.Errorf("insert test project: %w", err)
 	// }

@@ -62,7 +62,6 @@ func (s LogSrvc) SendLog(ctx context.Context, req dto.SendLogRequest) (dto.SendL
 	return dto.SendLogResponse{}, nil
 }
 
-// ListEvents لیستی از خلاصه ایونت‌ها با فیلتر
 func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.ListEventsResponse, error) {
 	const pageSize = 10
 	offset := (filters.Page - 1) * pageSize
@@ -78,7 +77,9 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 
 	var i = 1
 	for key, value := range filters.SearchableKeys {
-		whereClause += fmt.Sprintf(" AND payload.key[%v] = '%s' AND payload.value[%v] = '%s'", i, key, i, value)
+		if value != "" {
+			whereClause += fmt.Sprintf(" AND payload.key[%v] = '%s' AND payload.value[%v] = '%s'", i, key, i, value)
+		}
 		i++
 	}
 

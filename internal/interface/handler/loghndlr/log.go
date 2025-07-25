@@ -24,7 +24,6 @@ func New(g *echo.Group, srvc application.Services) *LogHndlr {
 	return handler
 }
 
-// SendLog ورودی را به DTO تبدیل و به سرویس ارسال می‌کند
 func (h *LogHndlr) SendLog(c echo.Context) error {
 	var req dto.SendLogRequest
 	log.Info("Received request to send log")
@@ -40,13 +39,11 @@ func (h *LogHndlr) SendLog(c echo.Context) error {
 	return c.JSON(http.StatusOK, resp)
 }
 
-// ListEvents لیست خلاصه‌ایونت‌ها را با فیلتر برمی‌گرداند
 func (h *LogHndlr) ListEvents(c echo.Context) error {
 	var filters dto.EventFilters
 
 	log.Info("Received request to summery")
 
-	// Bind simple fields like ProjectID, EventName, etc.
 	if err := c.Bind(&filters); err != nil {
 		log.Error("Received request to summery err: ", err)
 		return c.JSON(http.StatusBadRequest, err.Error())
@@ -73,7 +70,6 @@ func (h *LogHndlr) ListEvents(c echo.Context) error {
 	return c.JSON(http.StatusOK, eventsResponse)
 }
 
-// DetailEvent جزئیات یک ایونت خاص را برمی‌گرداند
 func (h *LogHndlr) DetailEvent(c echo.Context) error {
 	var filters dto.EventFilters
 	fmt.Println("Received request for event details:")

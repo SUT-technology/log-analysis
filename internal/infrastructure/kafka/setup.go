@@ -12,13 +12,11 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-// KafkaClient wraps producer and consumer.
 type KafkaClient struct {
 	writer *kafka.Writer
 	reader *kafka.Reader
 }
 
-// NewKafkaProducer initializes a Kafka writer.
 func NewKafkaProducer(brokers []string, topic string) *KafkaClient {
 	return &KafkaClient{
 		writer: &kafka.Writer{
@@ -29,7 +27,6 @@ func NewKafkaProducer(brokers []string, topic string) *KafkaClient {
 	}
 }
 
-// NewKafkaConsumer initializes a Kafka reader.
 func NewKafkaConsumer(brokers []string, topic, groupID string) *KafkaClient {
 	return &KafkaClient{
 		reader: kafka.NewReader(kafka.ReaderConfig{
@@ -42,7 +39,6 @@ func NewKafkaConsumer(brokers []string, topic, groupID string) *KafkaClient {
 	}
 }
 
-// Produce sends a message to Kafka.
 func (k *KafkaClient) Produce(ctx context.Context, msg interface{}) error {
 	b, err := json.Marshal(msg)
 	if err != nil {
@@ -55,7 +51,6 @@ func (k *KafkaClient) Produce(ctx context.Context, msg interface{}) error {
 	})
 }
 
-// Consume reads a message from Kafka.
 func (k *KafkaClient) Consume(ctx context.Context) ([]byte, error) {
 	m, err := k.reader.ReadMessage(ctx)
 	if err != nil {
@@ -64,7 +59,6 @@ func (k *KafkaClient) Consume(ctx context.Context) ([]byte, error) {
 	return m.Value, nil
 }
 
-// ProcessAndInsert consumes messages from Kafka and inserts them into Cassandra and ClickHouse.
 func (k *KafkaClient) ProcessAndInsert(ctx context.Context, cass *cassandra.CassandraClient, ch *clickhouse.ClickHouseSQLClient) error {
 	for {
 		msg, err := k.Consume(ctx)

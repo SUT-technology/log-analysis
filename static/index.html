@@ -377,6 +377,8 @@
           msgBox.style.color = 'var(--accent)';
           msgBox.textContent = '✅ Log sent successfully';
         } else {
+          const data = await res.json();
+          console.log(data)
           throw new Error(data.message || 'Unknown error');
         }
       } catch (err) {
@@ -442,7 +444,7 @@
       const kv = new Map();
       document.querySelectorAll('#filter-container input').forEach(inp => {
         console.log(inp.value)
-        if (inp.value) kv.set(`${inp.dataset.key}`, inp.value)
+        kv.set(`${inp.dataset.key}`, inp.value)
       });
       console.log(JSON.stringify({ project_id: currentProject.project_id, searchable_keys: Object.fromEntries(kv) }))
       const res = await fetch(API_BASE + '/api/logs/summery', {
