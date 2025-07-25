@@ -63,8 +63,11 @@ func (c *ClickHouseSQLClient) GetNextEventTime(ctx context.Context, filters dto.
 		conditions = append(conditions, fmt.Sprintf("event_name = '%s'",filters.EventName))
 	}
 
-	for key := range filters.SearchableKeys {
-		conditions = append(conditions, fmt.Sprintf("payload['%s'] = '%s'", key, key))
+	var i = 1
+	for key,value := range filters.SearchableKeys {
+		conditions =append(conditions, fmt.Sprintf("payload.key[%v] = '%s'", i, key))
+		conditions =append(conditions, fmt.Sprintf("payload.value[%v] = '%s'", i, value ))
+		i++
 	}
 
 	whereClause := ""
@@ -89,8 +92,11 @@ func (c *ClickHouseSQLClient) GetPreviousEventTime(ctx context.Context, filters 
 		conditions = append(conditions, fmt.Sprintf("event_name = '%s'",filters.EventName))
 	}
 
-	for key := range filters.SearchableKeys {
-		conditions = append(conditions, fmt.Sprintf("payload['%s'] = '%s'", key, key))
+	var i = 1
+	for key,value := range filters.SearchableKeys {
+		conditions =append(conditions, fmt.Sprintf("payload.key[%v] = '%s'", i, key))
+		conditions =append(conditions, fmt.Sprintf("payload.value[%v] = '%s'", i, value ))
+		i++
 	}
 
 	whereClause := ""
