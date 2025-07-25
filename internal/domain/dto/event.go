@@ -30,6 +30,8 @@ type DetailEventsResponse struct {
 	ProjectID   string       `json:"project_id"`
 	Filters     EventFilters `json:"applied_filters"`
 	Current     EventDetail  `json:"current_event"`
+	NextEventTime  time.Time  `json:"next_event"`
+	PreviousEventTime time.Time	`json:"previous_event"`
 }
 
 // EventFilters ورودی فیلتر
@@ -38,7 +40,7 @@ type EventFilters struct {
 	SearchableKeys map[string]string `json:"searchable_keys,omitempty"`
 	EventName      string            `json:"event_name,omitempty" query:"event_name"`
 	EventTime	   time.Time		 `json:"event_time,omitempty" query:"event_time"`
-	Position	   Position			 `json:"position,omitempty"`
+	// Position	   Position			 `json:"position,omitempty"`
 	Page           int               `json:"page,omitempty" query:"page"`
 
 }

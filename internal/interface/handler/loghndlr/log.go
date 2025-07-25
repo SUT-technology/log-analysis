@@ -19,7 +19,6 @@ func New(g *echo.Group, srvc application.Services) *LogHndlr {
 	handler := &LogHndlr{Services: srvc}
 
 	g.GET("", handler.ListEvents)
-	g.GET(":eventName", handler.DetailEvent)
 	g.GET("/:eventName", handler.DetailEvent)
 	g.POST("", handler.SendLog)
 
@@ -48,7 +47,7 @@ func (h *LogHndlr) ListEvents(c echo.Context) error {
 
 	// Bind simple fields like ProjectID, EventName, etc.
 	if err := c.Bind(&filters); err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ListEventsResponse{Filters: dto.EventFilters{}})
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	// Manually extract searchable_keys[...] from query params
@@ -78,14 +77,13 @@ func (h *LogHndlr) DetailEvent(c echo.Context) error {
 	var filters dto.EventFilters
 	fmt.Println("Received request for event details:", c.Param("eventName"))
 	if err := c.Bind(&filters); err != nil {
-		return c.JSON(http.StatusBadRequest, dto.DetailEventsResponse{Filters: dto.EventFilters{}})
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	// eventName از مسیر می‌آید
 	filters.EventName = c.Param("eventName")
 	resp, err := h.Services.LogSrvc.DetailEvent(c.Request().Context(), filters)
 	if err != nil {
-		fmt.Println("Failed to get event details:", err)
-		return c.JSON(http.StatusInternalServerError, dto.DetailEventsResponse{Filters: filters})
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, resp)
 }

@@ -3,7 +3,6 @@ package logsrvc
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/SUT-technology/log-analysis/internal/domain/dto"
 	"github.com/SUT-technology/log-analysis/internal/domain/models"
@@ -11,6 +10,7 @@ import (
 	clickhouse "github.com/SUT-technology/log-analysis/internal/infrastructure/clickHouse"
 	cockroachdb "github.com/SUT-technology/log-analysis/internal/infrastructure/cockroachDB"
 	"github.com/SUT-technology/log-analysis/internal/infrastructure/kafka"
+	"github.com/labstack/gommon/log"
 )
 
 type LogSrvc struct {
@@ -65,45 +65,30 @@ func (s LogSrvc) SendLog(ctx context.Context, req dto.SendLogRequest) (dto.SendL
 // ListEvents لیستی از خلاصه ایونت‌ها با فیلتر
 func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.ListEventsResponse, error) {
 	const pageSize = 10
-	offset := filters.Page * pageSize
+	offset := (filters.Page-1) * pageSize
+	fmt.Printf("[debug] projectID: %s",filters.ProjectID)
 
-	// Build WHERE conditions dynamically
-	conditions := []string{fmt.Sprintf("project_id = '%s'", filters.ProjectID)}
+	whereClause := fmt.Sprintf("WHERE project_id = '%s'",filters.ProjectID)
 
 	if filters.EventName != "" {
-		conditions = append(conditions, "event_name = {event_name:String}")
-		// params["event_name"] = filters.EventName
+		whereClause += fmt.Sprintf(" AND event_name = '%s'",filters.EventName)
 	}
 
-	for key, value := range filters.SearchableKeys {
-		conditions = append(conditions, fmt.Sprintf("payload['%s'] = {%s:String}", key, value))
-		// params[key] = value
+
+	var i = 1
+	for key,value := range filters.SearchableKeys {
+		whereClause += fmt.Sprintf(" AND payload.key[%v] = '%s' AND payload.value[%v] = '%s'", i, key, i, value )
+		i++
+
 	}
 
-	whereClause := ""
-	if len(conditions) > 0 {
-		whereClause = "WHERE " + strings.Join(conditions, " AND ")
-	}
+	query := fmt.Sprintf(`SELECT event_name, max(event_time) AS last_occur, count(*) AS total_count FROM events_clickhouse %v GROUP BY event_name ORDER BY last_occur DESC LIMIT %d OFFSET %d`, whereClause, pageSize, offset)
 
-	query := fmt.Sprintf(`
-		SELECT 
-			event_name,
-			max(event_time) AS last_occur,
-			count(*) AS total_count
-		FROM events_clickhouse
-		%s
-		GROUP BY event_name
-		ORDER BY last_occur DESC
-		LIMIT %d OFFSET %d
-	`, whereClause, pageSize, offset)
+	fmt.Printf("[debug] query: %s",query)
 
-	fmt.Println("query:; ", query)
-	fmt.Println("params:; ", conditions)
-	fmt.Println("searchs: ", filters.SearchableKeys)
-
-	// Run query
 	rows, err := s.clickhouse.DB.QueryContext(ctx, query)
 	if err != nil {
+		log.Error("error in getting rows:",err)
 		return dto.ListEventsResponse{}, err
 	}
 	defer rows.Close()
@@ -112,6 +97,7 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 	for rows.Next() {
 		var e dto.EventSummary
 		if err := rows.Scan(&e.EventName, &e.LastOccur, &e.TotalCount); err != nil {
+			log.Error("error in getting scanning:",err)
 			return dto.ListEventsResponse{}, err
 		}
 		events = append(events, e)
@@ -124,71 +110,29 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 	}, nil
 }
 
-// DetailEvent جزئیات ایونت فعلی و ناوبری را بازمی‌گرداند
 func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto.DetailEventsResponse, error) {
-
-	// Build WHERE conditions dynamically
-	conditions := []string{fmt.Sprintf("project_id = {%s:String}", filters.ProjectID)}
-
-	if filters.EventName != "" {
-		conditions = append(conditions, "event_name = {event_name:String}")
-	}
-
-	for key := range filters.SearchableKeys {
-		conditions = append(conditions, fmt.Sprintf("payload['%s'] = {%s:String}", key, key))
-		// params[key] = value
-	}
-
-	whereClause := ""
-	if len(conditions) > 0 {
-		whereClause = "WHERE " + strings.Join(conditions, " AND ")
-	}
-
-	var query string
-
-	if filters.Position == dto.Absolute {
-		query = fmt.Sprintf(`
-				SELECT * FROM events
-				WHERE %s AND event_time = %s
-				GROUP BY event_name
-				ORDER BY event_time DESC
-				LIMIT 1
-				`, whereClause, filters.EventTime)
-	} else if filters.Position == dto.Next {
-		query = fmt.Sprintf(`
-				SELECT * FROM events
-				WHERE %s AND event_time > %s
-				GROUP BY event_name
-				ORDER BY event_time ASC
-				LIMIT 1
-				`, whereClause, filters.EventTime)
-	} else if filters.Position == dto.Previous {
-		query = fmt.Sprintf(`
-				SELECT * FROM events
-				WHERE %s AND event_time < %s
-				GROUP BY event_name
-				ORDER BY event_time DESC
-				LIMIT 1
-				`, whereClause, filters.EventTime)
-	}
-
-	// Run query
-	row, err := s.clickhouse.DB.QueryContext(ctx, query)
+	
+	event, err := s.cassandra.GetEventByTime(ctx, filters.ProjectID, filters.EventTime, filters.EventName)
 	if err != nil {
+		log.Error("error getting event by time from cassandra: ",err)
 		return dto.DetailEventsResponse{}, err
 	}
-	defer row.Close()
 
-	var event dto.EventDetail
-	if row.Next() {
-		if err := row.Scan(&event.EventName, &event.EventTime, &event.InsertedTime, &event.Payload); err != nil {
-			return dto.DetailEventsResponse{}, err
-		}
-	}
+	nextTime := s.clickhouse.GetNextEventTime(ctx, filters)
+
+	prevTime := s.clickhouse.GetPreviousEventTime(ctx, filters)
 
 	return dto.DetailEventsResponse{
 		ProjectID: filters.ProjectID,
 		Filters:   filters,
-		Current:   event,
+		Current: dto.EventDetail{
+			EventName:    event.EventName,
+			EventTime:    event.EventTime,
+			InsertedTime: event.InsertedTime,
+			Payload:      event.Payload,
+		},
+		NextEventTime:     nextTime,
+		PreviousEventTime: prevTime,
 	}, nil
 }
+
