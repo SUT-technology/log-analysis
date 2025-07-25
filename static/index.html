@@ -228,6 +228,7 @@
     }
     let token = getCookie("api_token");
     let currentProject = null;
+    var appliedFilters = {}
 
     // Helper: show view
     function showView(id) {
@@ -319,9 +320,10 @@
 
         const res = await fetch(API_BASE + '/api/logs', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json',
+          headers: {
+            'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token
-           },
+          },
           body: JSON.stringify({ project_id, api_key, name, timestamp, payload })
         });
         if (res.ok) {
@@ -358,13 +360,19 @@
       const kv = new Map();
       document.querySelectorAll('#filter-container input').forEach(inp => {
         console.log(inp.value)
-        if (inp.value) kv.set(`${inp.dataset.key}`,inp.value) 
+        if (inp.value) kv.set(`${inp.dataset.key}`, inp.value)
       });
-      console.log(JSON.stringify({project_id:currentProject.project_id,searchable_keys:Object.fromEntries(kv)}))
+      console.log(JSON.stringify({ project_id: currentProject.project_id, searchable_keys: Object.fromEntries(kv) }))
       const res = await fetch(API_BASE + '/api/logs/summery', {
         method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token } ,
-        body : JSON.stringify({project_id:currentProject.project_id, searchable_keys:Object.fromEntries(kv)})
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          project_id: currentProject.project_id, searchable_keys: Object.fromEntries(kv),
+          page: 1
+        })
       });
       const data = await res.json();
       console.log(data)
@@ -388,7 +396,16 @@
     async function loadDetail() {
       const qs = new URLSearchParams();
       Object.entries(appliedFilters).forEach(([k, v]) => qs.append(k, v));
-      const res = await fetch(API_BASE + `/api/logs/${encodeURIComponent(appliedFilters.event_name)}?` + qs.toString(), { headers: { 'Authorization': 'Bearer ' + token } });
+      appliedFilters.project_id = currentProject.project_id;
+      const res = await fetch(API_BASE + `/api/logs/detail`, {
+        headers: { 'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+         },
+        method: 'POST',
+        body: JSON.stringify(appliedFilters)
+      },
+
+      );
       const d = await res.json();
       const info = document.getElementById('detail-info'); info.innerHTML = '';
       const ev = d.current_event;

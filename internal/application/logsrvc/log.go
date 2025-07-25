@@ -65,35 +65,30 @@ func (s LogSrvc) SendLog(ctx context.Context, req dto.SendLogRequest) (dto.SendL
 // ListEvents لیستی از خلاصه ایونت‌ها با فیلتر
 func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.ListEventsResponse, error) {
 	const pageSize = 10
-	offset := (filters.Page-1) * pageSize
+	offset := (filters.Page - 1) * pageSize
+	log.Info("offset: ", offset)
 
-	fmt.Printf("[debug] projectID: %s",filters.ProjectID)
+	fmt.Printf("[debug] projectID: %s", filters.ProjectID)
 
-	whereClause := fmt.Sprintf("WHERE project_id = '%s'",filters.ProjectID)
-	whereClause := fmt.Sprintf("WHERE project_id = '%s'",filters.ProjectID)
+	whereClause := fmt.Sprintf("WHERE project_id = '%s'", filters.ProjectID)
 
 	if filters.EventName != "" {
-		whereClause += fmt.Sprintf(" AND event_name = '%s'",filters.EventName)
-		whereClause += fmt.Sprintf(" AND event_name = '%s'",filters.EventName)
+		whereClause += fmt.Sprintf(" AND event_name = '%s'", filters.EventName)
 	}
 
 	var i = 1
-	for key,value := range filters.SearchableKeys {
-		whereClause += fmt.Sprintf(" AND payload.key[%v] = '%s' AND payload.value[%v] = '%s'", i, key, i, value )
+	for key, value := range filters.SearchableKeys {
+		whereClause += fmt.Sprintf(" AND payload.key[%v] = '%s' AND payload.value[%v] = '%s'", i, key, i, value)
 		i++
 	}
 
 	query := fmt.Sprintf(`SELECT event_name, max(event_time) AS last_occur, count(*) AS total_count FROM events_clickhouse %v GROUP BY event_name ORDER BY last_occur DESC LIMIT %d OFFSET %d`, whereClause, pageSize, offset)
-	query := fmt.Sprintf(`SELECT event_name, max(event_time) AS last_occur, count(*) AS total_count FROM events_clickhouse %v GROUP BY event_name ORDER BY last_occur DESC LIMIT %d OFFSET %d`, whereClause, pageSize, offset)
 
-	fmt.Printf("[debug] query: %s",query)
-
-	fmt.Printf("[debug] query: %s",query)
+	fmt.Printf("[debug] query: %s", query)
 
 	rows, err := s.clickhouse.DB.QueryContext(ctx, query)
 	if err != nil {
-		log.Error("error in getting rows:",err)
-		log.Error("error in getting rows:",err)
+		log.Error("error in getting rows:", err)
 		return dto.ListEventsResponse{}, err
 	}
 	defer rows.Close()
@@ -102,8 +97,7 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 	for rows.Next() {
 		var e dto.EventSummary
 		if err := rows.Scan(&e.EventName, &e.LastOccur, &e.TotalCount); err != nil {
-			log.Error("error in getting scanning:",err)
-			log.Error("error in getting scanning:",err)
+			log.Error("error in getting scanning:", err)
 			return dto.ListEventsResponse{}, err
 		}
 		events = append(events, e)
@@ -117,19 +111,14 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 }
 
 func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto.DetailEventsResponse, error) {
-	
+
 	event, err := s.cassandra.GetEventByTime(ctx, filters.ProjectID, filters.EventTime, filters.EventName)
-	
-	event, err := s.cassandra.GetEventByTime(ctx, filters.ProjectID, filters.EventTime, filters.EventName)
+
 	if err != nil {
-		log.Error("error getting event by time from cassandra: ",err)
-		log.Error("error getting event by time from cassandra: ",err)
+		log.Error("error getting event by time from cassandra: ", err)
+		log.Error("error getting event by time from cassandra: ", err)
 		return dto.DetailEventsResponse{}, err
 	}
-
-	nextTime := s.clickhouse.GetNextEventTime(ctx, filters)
-
-	prevTime := s.clickhouse.GetPreviousEventTime(ctx, filters)
 
 	nextTime := s.clickhouse.GetNextEventTime(ctx, filters)
 
@@ -146,16 +135,5 @@ func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto
 		},
 		NextEventTime:     nextTime,
 		PreviousEventTime: prevTime,
-		Filters:   filters,
-		Current: dto.EventDetail{
-			EventName:    event.EventName,
-			EventTime:    event.EventTime,
-			InsertedTime: event.InsertedTime,
-			Payload:      event.Payload,
-		},
-		NextEventTime:     nextTime,
-		PreviousEventTime: prevTime,
 	}, nil
 }
-
-
