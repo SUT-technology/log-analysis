@@ -64,13 +64,12 @@ func NewCassandraClient(hosts []string, keyspace string) (*CassandraClient, erro
 func (c *CassandraClient) initSchema() error {
 	createTable := `
 	CREATE TABLE IF NOT EXISTS events_raw (
-		id UUID,
 		project_id UUID,
 		event_name TEXT,
 		event_time TIMESTAMP,
 		inserted_time TIMESTAMP,
 		payload map<TEXT,TEXT>,
-		PRIMARY KEY ((project_id), event_name, event_time)
+		PRIMARY KEY ((project_id), event_time)
 	) WITH default_time_to_live = 0;`
 
 	return c.session.Query(createTable).Exec()

@@ -43,11 +43,11 @@ func (h *LogHndlr) SendLog(c echo.Context) error {
 func (h *LogHndlr) ListEvents(c echo.Context) error {
 	var filters dto.EventFilters
 	if err := c.Bind(&filters); err != nil {
-		return c.JSON(http.StatusBadRequest, dto.ListEventsResponse{Filters: dto.EventFilters{}})
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	resp, err := h.Services.LogSrvc.ListEvents(c.Request().Context(), filters)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, dto.ListEventsResponse{Filters: filters})
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, resp)
 }
@@ -56,13 +56,13 @@ func (h *LogHndlr) ListEvents(c echo.Context) error {
 func (h *LogHndlr) DetailEvent(c echo.Context) error {
 	var filters dto.EventFilters
 	if err := c.Bind(&filters); err != nil {
-		return c.JSON(http.StatusBadRequest, dto.DetailEventsResponse{Filters: dto.EventFilters{}})
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 	// eventName از مسیر می‌آید
 	filters.EventName = c.Param("eventName")
 	resp, err := h.Services.LogSrvc.DetailEvent(c.Request().Context(), filters)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, dto.DetailEventsResponse{Filters: filters})
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 	return c.JSON(http.StatusOK, resp)
 }
