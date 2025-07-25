@@ -59,6 +59,10 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     }
 
+    #project-list{
+      margin-top: 20px;
+    }
+
     input,
     select,
     button {
@@ -155,6 +159,7 @@
     <div id="view-projects" class="panel hidden">
       <h2>Your Projects</h2>
       <button id="btn-sendlog">Send a Log</button>
+      <button id="btn-createProject">Create Project</button>
       <ul id="project-list"></ul>
     </div>
 
@@ -181,6 +186,27 @@
         <button type="submit">Send Log</button>
       </form>
       <p id="sendlog-msg" style="margin-top:1rem;"></p>
+    </div>
+
+    
+    <div id="view-createProject" class="panel hidden">
+      <h2>Create Project</h2>
+      <form id="form-createProject">
+        <label>API Key
+          <input type="text" id="createProject-apikey" required />
+        </label>
+        <label>Project Name
+          <input type="text" id="createProject-name" required />
+        </label>
+        <label>TTL
+          <input type="number" id="createProject-ttl" />
+        </label>
+        <label>Searchable keys
+          <input type="text" id="createProject-search" />
+        </label>
+        <button type="submit">Create Project</button>
+      </form>
+      <p id="createProject-msg" style="margin-top:1rem;"></p>
     </div>
 
 
@@ -229,10 +255,12 @@
     let token = getCookie("api_token");
     let currentProject = null;
     var appliedFilters = {}
+    var nextEventTime = null;
+    var previousEventTime = null;
 
     // Helper: show view
     function showView(id) {
-      ['view-login', 'view-projects', 'view-summary', 'view-detail'].forEach(v => document.getElementById(v).classList.add('hidden'));
+      ['view-login', 'view-projects', 'view-summary', 'view-detail' , 'view-createProject', 'view-sendlog'].forEach(v => document.getElementById(v).classList.add('hidden'));
       document.getElementById(id).classList.remove('hidden');
     }
     // Login
@@ -274,6 +302,21 @@
       list.projects.forEach(p => {
         const li = document.createElement('li');
         li.textContent = p.project_name;
+        li.style.marginBottom = '0.5rem';
+        li.style.cursor = 'pointer';
+        li.style.background = '#23232b';
+        li.style.borderRadius = '6px';
+        li.style.padding = '0.75rem 1rem';
+        li.style.transition = 'background 0.2s, box-shadow 0.2s';
+        li.style.boxShadow = '0 1px 4px rgba(0,0,0,0.12)';
+        li.addEventListener('mouseenter', () => {
+          li.style.background = '#29293a';
+          li.style.boxShadow = '0 2px 8px rgba(0,0,0,0.18)';
+        });
+        li.addEventListener('mouseleave', () => {
+          li.style.background = '#23232b';
+          li.style.boxShadow = '0 1px 4px rgba(0,0,0,0.12)';
+        });
         li.addEventListener('click', () => openSummary(p));
         ul.append(li);
       });
@@ -283,10 +326,14 @@
       loadSendLogProjects();
       showView('view-sendlog');
     });
+    document.getElementById('btn-createProject').addEventListener('click', () => {
+      showView('view-createProject');
+    });
 
     document.getElementById('back-projects-2').addEventListener('click', () => {
       showView('view-projects');
     });
+
 
     async function loadSendLogProjects() {
       const res = await fetch(API_BASE + '/api/projects', { headers: { 'Authorization': 'Bearer ' + token } });
@@ -325,6 +372,41 @@
             'Authorization': 'Bearer ' + token
           },
           body: JSON.stringify({ project_id, api_key, name, timestamp, payload })
+        });
+        if (res.ok) {
+          msgBox.style.color = 'var(--accent)';
+          msgBox.textContent = '✅ Log sent successfully';
+        } else {
+          throw new Error(data.message || 'Unknown error');
+        }
+      } catch (err) {
+        msgBox.style.color = 'var(--error)';
+        msgBox.textContent = '❌ ' + err.message;
+      }
+    });
+
+    document.getElementById('form-createProject').addEventListener('submit', async e => {
+      e.preventDefault();
+      const msgBox = document.getElementById('createProject-msg');
+      msgBox.textContent = '';
+      try {
+        const api_key = document.getElementById('createProject-apikey').value;
+        const name = document.getElementById('createProject-name').value;
+        const ttl = document.getElementById('createProject-ttl').value;
+        const searchable_keys = document.getElementById('createProject-search').value.split(',').map(k => k.trim());
+
+        const res = await fetch(API_BASE + '/api/projects/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({
+            api_key,
+            name: name,
+            ttl,
+            searchable_keys
+          })
         });
         if (res.ok) {
           msgBox.style.color = 'var(--accent)';
@@ -380,15 +462,15 @@
       data.data.forEach(row => {
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${row.event_name}</td><td>${new Date(row.last_occur).toLocaleString()}</td><td>${row.total_count}</td>`;
-        tr.addEventListener('click', () => openDetail(row.event_name));
+        tr.addEventListener('click', () => openDetail(row));
         tbody.append(tr);
       });
     }
     document.getElementById('btn-refresh').addEventListener('click', fetchSummary);
 
-    function openDetail(name) {
-      appliedFilters.event_name = name;
-      appliedFilters.position = '';
+    function openDetail(row) {
+      appliedFilters.event_name = row.event_name;
+      appliedFilters.event_time = row.last_occur;
       loadDetail();
       showView('view-detail');
     }
@@ -413,11 +495,14 @@
       info.innerHTML += `<p><strong>Occurred:</strong> ${new Date(ev.event_time).toLocaleString()}</p>`;
       info.innerHTML += `<p><strong>Inserted:</strong> ${new Date(ev.inserted_time).toLocaleString()}</p>`;
       // set positions
-      appliedFilters.position = d.filters.position;
+      previousEventTime = d.previous_event;
+      nextEventTime = d.next_event;
+
+      console.log(previousEventTime, nextEventTime);
     }
 
-    document.getElementById('btn-prev').addEventListener('click', () => { /* set position to previous */ loadDetail(); });
-    document.getElementById('btn-next').addEventListener('click', () => { /* set position to next */ loadDetail(); });
+    document.getElementById('btn-prev').addEventListener('click', () => {appliedFilters.event_time = previousEventTime; loadDetail(); });
+    document.getElementById('btn-next').addEventListener('click', () => { appliedFilters.event_time = nextEventTime; loadDetail(); });
   </script>
 </body>
 

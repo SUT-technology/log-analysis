@@ -62,10 +62,10 @@ func (c *CockroachDBClient) InitCockroachSchema() error {
 	}
 
 	// Insert a test project and user
-	// ownerID, err := c.InsertTestUser()
-	// if err != nil {
-	// 	return fmt.Errorf("insert test user: %w", err)
-	// }
+	_, err = c.InsertTestUser()
+	if err != nil {
+		return fmt.Errorf("insert test user: %w", err)
+	}
 	// if err := c.InsertTestProject(ownerID); err != nil {
 	// 	return fmt.Errorf("insert test project: %w", err)
 	// }
@@ -97,7 +97,7 @@ func (c *CockroachDBClient) InsertTestUser() (string, error) {
 	RETURNING id;
 	`
 
-	username := "mahdi452"
+	username := "mahdi001"
 	password := "123456"
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 

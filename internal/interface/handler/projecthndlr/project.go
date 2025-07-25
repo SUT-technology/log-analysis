@@ -8,6 +8,7 @@ import (
 	"github.com/SUT-technology/log-analysis/internal/domain/dto"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 type ProjectHndlr struct {
@@ -18,7 +19,7 @@ func New(g *echo.Group, srvc application.Services) *ProjectHndlr {
 	handler := &ProjectHndlr{Services: srvc}
 
 	g.GET("", handler.ProjectsList)
-	g.POST("", handler.CreateProject)
+	g.POST("/create", handler.CreateProject)
 
 	return handler
 }
@@ -37,9 +38,18 @@ func (p *ProjectHndlr) ProjectsList(c echo.Context) error {
 
 func (p *ProjectHndlr) CreateProject(c echo.Context) error {
 	var project dto.NewProjectRequset
+
+	log.Info("Recieved request for create project")
 	if err := c.Bind(&project); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
+
+	userId, ok := c.Get("user_id").(uuid.UUID)
+	if !ok {
+		return errors.New("user id not found")
+	}
+
+	project.OwnerID = userId
 	resp, err := p.Services.ProjectSrvc.SaveProject(c.Request().Context(), project)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())

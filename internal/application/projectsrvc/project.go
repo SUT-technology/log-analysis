@@ -43,7 +43,7 @@ func (p ProjectSrvc) ProjectsList(ctx context.Context, userID uuid.UUID) (dto.Pr
 func (p ProjectSrvc) SaveProject(ctx context.Context, project dto.NewProjectRequset) (dto.NewProjectResponse, error) {
 
 	var model = models.Project{
-		OwnerID:        uuid.MustParse(project.OwnerID),
+		OwnerID:        project.OwnerID,
 		Name:           project.Name,
 		APIKey:         project.APIKey,
 		SearchableKeys: project.SearchableKeys,

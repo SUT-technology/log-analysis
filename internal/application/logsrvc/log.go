@@ -116,7 +116,6 @@ func (s LogSrvc) DetailEvent(ctx context.Context, filters dto.EventFilters) (dto
 
 	if err != nil {
 		log.Error("error getting event by time from cassandra: ", err)
-		log.Error("error getting event by time from cassandra: ", err)
 		return dto.DetailEventsResponse{}, err
 	}
 

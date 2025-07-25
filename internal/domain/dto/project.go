@@ -7,18 +7,18 @@ import (
 )
 
 type ProjectSummery struct {
-	ProjectID      uuid.UUID         `json:"project_id"`
-	ProjectName    string            `json:"project_name"`
-	SearchableKeys []string 		 `json:"searchable_keys"`
+	ProjectID      uuid.UUID `json:"project_id"`
+	ProjectName    string    `json:"project_name"`
+	SearchableKeys []string  `json:"searchable_keys"`
 }
 
 type ProjectsListRespone struct {
-	UserID 	 uuid.UUID			`json:"user_id"`
-	Projects []ProjectSummery	`json:"projects"`
+	UserID   uuid.UUID        `json:"user_id"`
+	Projects []ProjectSummery `json:"projects"`
 }
 
 type NewProjectRequset struct {
-	OwnerID        string `json:"owner_id"`
+	OwnerID        uuid.UUID `json:"owner_id"`
 	Name           string    `json:"name"`
 	APIKey         string    `json:"api_key"`
 	SearchableKeys []string  `json:"searchable_keys"`
@@ -26,8 +26,8 @@ type NewProjectRequset struct {
 }
 
 type NewProjectResponse struct {
-	ID             string `json:"id"`
-	OwnerID        string `json:"owner_id"`
+	ID             string    `json:"id"`
+	OwnerID        string    `json:"owner_id"`
 	Name           string    `json:"name"`
 	APIKey         string    `json:"api_key"`
 	SearchableKeys []string  `json:"searchable_keys"`
