@@ -35,7 +35,7 @@ func New(producer *kafka.KafkaClient,
 func (s LogSrvc) SendLog(ctx context.Context, req dto.SendLogRequest) (dto.SendLogResponse, error) {
 	project, err := s.cockroachdb.GetProject(ctx, req.ProjectID)
 	if err != nil {
-		fmt.Errorf("error debug: %w",err)
+		fmt.Errorf("error debug: %w", err)
 		return dto.SendLogResponse{}, err
 	}
 
@@ -66,7 +66,6 @@ func (s LogSrvc) SendLog(ctx context.Context, req dto.SendLogRequest) (dto.SendL
 func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.ListEventsResponse, error) {
 	const pageSize = 10
 	offset := (filters.Page-1) * pageSize
-
 	fmt.Printf("[debug] projectID: %s",filters.ProjectID)
 
 	whereClause := fmt.Sprintf("WHERE project_id = '%s'",filters.ProjectID)
@@ -75,10 +74,12 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 		whereClause += fmt.Sprintf(" AND event_name = '%s'",filters.EventName)
 	}
 
+
 	var i = 1
 	for key,value := range filters.SearchableKeys {
 		whereClause += fmt.Sprintf(" AND payload.key[%v] = '%s' AND payload.value[%v] = '%s'", i, key, i, value )
 		i++
+
 	}
 
 	query := fmt.Sprintf(`SELECT event_name, max(event_time) AS last_occur, count(*) AS total_count FROM events_clickhouse %v GROUP BY event_name ORDER BY last_occur DESC LIMIT %d OFFSET %d`, whereClause, pageSize, offset)
@@ -104,8 +105,8 @@ func (s LogSrvc) ListEvents(ctx context.Context, filters dto.EventFilters) (dto.
 
 	return dto.ListEventsResponse{
 		ProjectID: filters.ProjectID,
-		Data: events,
-		Filters: filters,
+		Data:      events,
+		Filters:   filters,
 	}, nil
 }
 

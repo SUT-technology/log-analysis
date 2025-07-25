@@ -1,0 +1,29 @@
+cockroach:
+  dsn: "postgresql://root@cockroach1:26257"
+
+
+kafka:
+  brokers:
+    - "kafka1:9092"
+    - "kafka2:9093"
+    - "kafka3:9094"
+  topic: "logs_raw"
+  group_id: "log_consumer_group"
+
+
+cassandra:
+  hosts:
+    - "cassandra1"
+  keyspace: "logks"
+
+
+clickhouse:
+  addr: "clickhouse:9000"
+  username: "default"
+  password: ""
+  database: "default"
+
+server:
+  addr: "0.0.0.0:8000"
+  port: 8000
+  secret_key: log-analytics-001

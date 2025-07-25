@@ -1,7 +1,9 @@
 package loghndlr
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/SUT-technology/log-analysis/internal/application"
 	"github.com/SUT-technology/log-analysis/internal/domain/dto"
@@ -12,7 +14,7 @@ import (
 type LogHndlr struct {
 	Services application.Services
 }
-		
+
 func New(g *echo.Group, srvc application.Services) *LogHndlr {
 	handler := &LogHndlr{Services: srvc}
 
@@ -42,19 +44,38 @@ func (h *LogHndlr) SendLog(c echo.Context) error {
 // ListEvents لیست خلاصه‌ایونت‌ها را با فیلتر برمی‌گرداند
 func (h *LogHndlr) ListEvents(c echo.Context) error {
 	var filters dto.EventFilters
+
+	// Bind simple fields like ProjectID, EventName, etc.
 	if err := c.Bind(&filters); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
-	resp, err := h.Services.LogSrvc.ListEvents(c.Request().Context(), filters)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
+
+	// Manually extract searchable_keys[...] from query params
+	filters.SearchableKeys = make(map[string]string)
+	for key, values := range c.QueryParams() {
+		if strings.HasPrefix(key, "searchable_keys[") && strings.HasSuffix(key, "]") {
+			innerKey := key[len("searchable_keys[") : len(key)-1]
+			if len(values) > 0 {
+				filters.SearchableKeys[innerKey] = values[0]
+			}
+		}
 	}
-	return c.JSON(http.StatusOK, resp)
+
+	// Now filters.SearchableKeys is populated correctly from your JS
+
+	// Continue with your logic
+	eventsResponse, err := h.Services.LogSrvc.ListEvents(c.Request().Context(), filters)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, eventsResponse)
 }
 
 // DetailEvent جزئیات یک ایونت خاص را برمی‌گرداند
 func (h *LogHndlr) DetailEvent(c echo.Context) error {
 	var filters dto.EventFilters
+	fmt.Println("Received request for event details:", c.Param("eventName"))
 	if err := c.Bind(&filters); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}

@@ -12,9 +12,9 @@ func register(e *echo.Echo, srvc application.Services, m *middlewares) {
 	// Create groups with middleware
 	// swaggerGroup := NewGroup("/swagger", middlewares.loggingMiddleware, mux
 
-	logs := e.Group("/api/logs")
+	logs := e.Group("/api/logs", m.corsMiddleware(), m.JWTMiddleware)
 	loghndlr.New(logs, srvc)
-	projects := e.Group("/api/projects")
+	projects := e.Group("/api/projects", m.corsMiddleware(), m.JWTMiddleware)
 	projecthndlr.New(projects, srvc)
 
 	auth := e.Group("/api/auth")

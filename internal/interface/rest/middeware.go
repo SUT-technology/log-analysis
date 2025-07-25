@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -22,6 +23,10 @@ func newMiddlewares(cfg config.Config) *middlewares {
 func (m *middlewares) JWTMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Get token from cookies
+		// Allow all OPTIONS requests through (CORS preflight)
+		if c.Request().Method == http.MethodOptions {
+			return c.NoContent(http.StatusOK)
+		}
 		authHeader := c.Request().Header.Get("Authorization")
 		if authHeader == "" {
 			return c.JSON(http.StatusUnauthorized, "invalid token")
@@ -73,6 +78,7 @@ func (m *middlewares) JWTMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // }
 
 func (m *middlewares) corsMiddleware() echo.MiddlewareFunc {
+	fmt.Println("cors check")
 	return middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{
@@ -87,6 +93,7 @@ func (m *middlewares) corsMiddleware() echo.MiddlewareFunc {
 			echo.HeaderOrigin,
 			echo.HeaderContentType,
 			echo.HeaderAccept,
+			echo.HeaderAuthorization,
 		},
 	})
 }

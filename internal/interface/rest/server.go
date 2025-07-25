@@ -48,14 +48,16 @@ func NewServer(srvc application.Services, cfg config.Config) *Server {
 
 	middleware = append(middleware, m.corsMiddleware())
 
+	e.Use(middleware...)
+
+	e.Use(m.corsMiddleware())
+
+	register(e, srvc, m)
+
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		log.Error("Unhandled error:", err)
 		c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 	}
-	e.Use(middleware...)
-
-	register(e, srvc, m)
-
 	return &Server{srv: e, defers: dfrs}
 }
 
