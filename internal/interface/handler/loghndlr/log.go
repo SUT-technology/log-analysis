@@ -17,7 +17,7 @@ func New(g *echo.Group, srvc application.Services) *LogHndlr {
 	handler := &LogHndlr{Services: srvc}
 
 	g.GET("", handler.ListEvents)
-	g.GET(":eventName", handler.DetailEvent)
+	g.GET("/:eventName", handler.DetailEvent)
 	g.POST("", handler.SendLog)
 
 	return handler
