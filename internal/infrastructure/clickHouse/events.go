@@ -3,8 +3,10 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/SUT-technology/log-analysis/internal/domain/dto"
 	"github.com/SUT-technology/log-analysis/internal/domain/models"
 )
 
@@ -55,5 +57,59 @@ func (c *ClickHouseSQLClient) InsertEvent(ctx context.Context, logMessage models
 
 	return nil
 }
+
+func (c *ClickHouseSQLClient) GetNextEventTime(ctx context.Context, filters dto.EventFilters) time.Time {
+	conditions := []string{fmt.Sprintf("project_id = '%s'",filters.ProjectID)}
+
+	if filters.EventName != "" {
+		conditions = append(conditions, fmt.Sprintf("event_name = '%s'",filters.EventName))
+	}
+
+	for key := range filters.SearchableKeys {
+		conditions = append(conditions, fmt.Sprintf("payload['%s'] = '%s'", key, key))
+	}
+
+	whereClause := ""
+	if len(conditions) > 0 {
+		whereClause = "WHERE " + strings.Join(conditions, " AND ")
+	}
+	
+	query := fmt.Sprintf(`SELECT event_time FROM events_clickhouse %s AND event_time > '%s' ORDER BY event_time ASC LIMIT 1`, whereClause, filters.EventTime.Format("2006-01-02 15:04:05"))
+
+	row := c.DB.QueryRowContext(ctx, query)
+	var next time.Time
+	if err := row.Scan(&next); err != nil {
+		return time.Time{}
+	}
+	return next
+}
+
+func (c *ClickHouseSQLClient) GetPreviousEventTime(ctx context.Context, filters dto.EventFilters) time.Time {
+	conditions := []string{fmt.Sprintf("project_id = '%s'",filters.ProjectID)}
+
+	if filters.EventName != "" {
+		conditions = append(conditions, fmt.Sprintf("event_name = '%s'",filters.EventName))
+	}
+
+	for key := range filters.SearchableKeys {
+		conditions = append(conditions, fmt.Sprintf("payload['%s'] = '%s'", key, key))
+		// params[key] = value
+	}
+
+	whereClause := ""
+	if len(conditions) > 0 {
+		whereClause = "WHERE " + strings.Join(conditions, " AND ")
+	}
+	
+	query := fmt.Sprintf(`SELECT event_time FROM events_clickhouse %s AND event_time < '%s' ORDER BY event_time DESC LIMIT 1`,whereClause, filters.EventTime.Format("2006-01-02 15:04:05"))
+
+	row := c.DB.QueryRowContext(ctx, query)
+	var prev time.Time
+	if err := row.Scan(&prev); err != nil {
+		return time.Time{}
+	}
+	return prev
+}
+
 
 
